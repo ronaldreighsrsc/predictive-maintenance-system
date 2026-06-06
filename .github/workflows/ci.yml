@@ -1,0 +1,37 @@
+name: CI - Predictive Maintenance System
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Smoke test - Import modules
+        run: |
+          cd src
+          python -c "from preprocessing.data_synthesizer import SensorDataSynthesizer; print('✅ Synthesizer OK')"
+          python -c "from preprocessing.data_loader import SensorDataLoader; print('✅ DataLoader OK')"
+          python -c "from preprocessing.feature_engineer import SensorFeatureEngineer; print('✅ FeatureEngineer OK')"
+          python -c "from models.autoencoder import MaintenanceAutoencoder; print('✅ Autoencoder OK')"
+          python -c "from models.xgb_predictor import MaintenanceXGBoostPredictor; print('✅ XGBoost OK')"
+          python -c "from models.isolation_forest import MaintenanceIsolationForest; print('✅ IsolationForest OK')"
+          python -c "from evaluation.metrics_engine import MaintenanceMetricsEngine; print('✅ MetricsEngine OK')"
+          python -c "from evaluation.rul_analyzer import RULAnalyzer; print('✅ RULAnalyzer OK')"

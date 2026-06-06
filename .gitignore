@@ -1,0 +1,13 @@
+# Entorno virtual
+venv/
+__pycache__/
+
+# No subir datos de sensores industriales a internet por seguridad
+data/
+
+# Artefactos de entrenamiento
+src/evaluation/results/*.npy
+src/evaluation/results/*.csv
+
+# Archivos ocultos del sistema
+.DS_Store
