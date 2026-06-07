@@ -39,7 +39,8 @@ class MaintenanceGANDetector:
         self.d_optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate, beta_1=0.5)
         self.bce = keras.losses.BinaryCrossentropy(from_logits=False)
         
-        self._max_anomaly_score = None
+        self._base_score = None
+        self._max_deviation = None
 
     def _build_generator(self, output_dim: int) -> keras.Model:
         """Construye el Generador (Ruido -> Datos Fake)."""
@@ -140,10 +141,13 @@ class MaintenanceGANDetector:
 
         print(f"  ✅ GAN entrenada ({self.epochs} épocas). D_loss: {final_d_loss:.4f}, G_loss: {final_g_loss:.4f}")
         
-        # Calcular parámetros de normalización del Health Score (basado en 1 - D(x))
+        # Calcular parámetros de normalización del Health Score (basado en desviación)
         anomaly_scores = self.get_reconstruction_errors(X_train_normal) # Raw anomaly score
-        self._max_anomaly_score = np.percentile(anomaly_scores, 99) * 1.5
-        print(f"  📏 Score base (P99): {np.percentile(anomaly_scores, 99):.6f}")
+        self._base_score = np.median(anomaly_scores)
+        self._max_deviation = np.percentile(anomaly_scores, 99) - self._base_score
+        if self._max_deviation <= 0:
+            self._max_deviation = 0.1 # Safety fallback
+        print(f"  📏 Median score: {self._base_score:.4f}, Max Deviation (P99): {self._max_deviation:.4f}")
 
         return {
             'epochs_trained': self.epochs,
@@ -167,8 +171,12 @@ class MaintenanceGANDetector:
     def predict_health_score(self, X: np.ndarray) -> np.ndarray:
         """Calcula el Health Score (0-100)."""
         anomaly_scores = self.get_reconstruction_errors(X)
-        # Normalizar a rango [0, 100] usando el max_score calibrado
-        normalized = np.clip(anomaly_scores / (self._max_anomaly_score + 1e-9), 0, 1)
+        
+        # Medimos la desviación por encima del score normal típico
+        deviations = np.maximum(0, anomaly_scores - self._base_score)
+        
+        # Normalizar asumiendo que 3 veces la desviación máxima de P99 es falla total
+        normalized = np.clip(deviations / (self._max_deviation * 3 + 1e-9), 0, 1)
         health_scores = (1 - normalized) * 100
         return health_scores
 
