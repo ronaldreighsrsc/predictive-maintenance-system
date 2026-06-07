@@ -41,10 +41,15 @@ def run_evaluation_pipeline():
     engine.evaluate_model('XGBoost Multi-Class', y_test, xgb_preds, is_multiclass=True)
     engine.print_model_report('XGBoost Multi-Class')
 
-    # Autoencoder (binario: anomalía sí/no)
-    ae_preds = np.load(os.path.join(results_dir, "ae_predictions.npy"))
-    engine.evaluate_model('Deep Autoencoder', y_test, ae_preds, is_multiclass=False)
-    engine.print_model_report('Deep Autoencoder')
+    # Deep Denoising Autoencoder (binario: anomalía sí/no)
+    ae_deep_preds = np.load(os.path.join(results_dir, "ae_deep_predictions.npy"))
+    engine.evaluate_model('Deep Denoising Autoencoder', y_test, ae_deep_preds, is_multiclass=False)
+    engine.print_model_report('Deep Denoising Autoencoder')
+
+    # LSTM Autoencoder (binario)
+    ae_lstm_preds = np.load(os.path.join(results_dir, "ae_lstm_predictions.npy"))
+    engine.evaluate_model('LSTM Autoencoder', y_test, ae_lstm_preds, is_multiclass=False)
+    engine.print_model_report('LSTM Autoencoder')
 
     # Isolation Forest (binario)
     iso_preds = np.load(os.path.join(results_dir, "iso_predictions.npy"))
@@ -53,13 +58,19 @@ def run_evaluation_pipeline():
 
     # --- PASO 3: Análisis de RUL ---
     print("\n\n--- PASO 3: Análisis de Remaining Useful Life (RUL) ---")
-    ae_health = np.load(os.path.join(results_dir, "ae_health_scores.npy"))
+    ae_deep_health = np.load(os.path.join(results_dir, "ae_deep_health_scores.npy"))
+    ae_lstm_health = np.load(os.path.join(results_dir, "ae_lstm_health_scores.npy"))
 
     rul_analyzer = RULAnalyzer(warning_threshold=60.0, critical_threshold=30.0)
-    rul_results = rul_analyzer.analyze(test_equipment, test_rul, ae_health)
+    
+    print("\n--- RUL Analysis: Deep Denoising Autoencoder ---")
+    rul_results_deep = rul_analyzer.analyze(test_equipment, test_rul, ae_deep_health)
+    
+    print("\n--- RUL Analysis: LSTM Autoencoder ---")
+    rul_results_lstm = rul_analyzer.analyze(test_equipment, test_rul, ae_lstm_health)
 
-    if rul_results['alert_analysis'] is not None:
-        rul_analyzer.print_equipment_summary(rul_results['alert_analysis'])
+    if rul_results_lstm['alert_analysis'] is not None:
+        rul_analyzer.print_equipment_summary(rul_results_lstm['alert_analysis'])
 
     # --- PASO 4: Resultados del Torneo ---
     engine.print_tournament_results()

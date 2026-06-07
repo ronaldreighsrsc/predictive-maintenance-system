@@ -2,7 +2,8 @@ import os
 import numpy as np
 import pandas as pd
 from preprocessing.feature_engineer import SensorFeatureEngineer
-from models.autoencoder import MaintenanceAutoencoder
+from models.autoencoder_deep import MaintenanceDeepAutoencoder
+from models.autoencoder_lstm import MaintenanceLSTMAutoencoder
 from models.xgb_predictor import MaintenanceXGBoostPredictor
 from models.isolation_forest import MaintenanceIsolationForest
 import warnings
@@ -58,18 +59,29 @@ def run_training_pipeline():
 
     os.makedirs("./src/evaluation/results", exist_ok=True)
 
-    # --- MODELO 1: Deep Autoencoder (Health Score) ---
-    print("\n--- MODELO 1: Deep Autoencoder (Health Score) ---")
-    autoencoder = MaintenanceAutoencoder(encoding_dim=16, epochs=100, batch_size=128)
+    # --- MODELO 1A: Deep Denoising Autoencoder (Health Score) ---
+    print("\n--- MODELO 1A: Deep Denoising Autoencoder (Health Score) ---")
+    autoencoder_deep = MaintenanceDeepAutoencoder(encoding_dim=16, epochs=100, batch_size=128)
 
     # Entrenar solo con datos normales
     X_train_normal = X_train[y_train == 0]
-    ae_info = autoencoder.fit(X_train_normal)
+    ae_info = autoencoder_deep.fit(X_train_normal)
 
-    ae_preds, ae_health = autoencoder.predict_anomaly(X_test, threshold=50.0)
-    np.save("./src/evaluation/results/ae_health_scores.npy", ae_health)
-    np.save("./src/evaluation/results/ae_predictions.npy", ae_preds)
-    print(f"  💾 Health Scores del Autoencoder guardados")
+    ae_preds, ae_health = autoencoder_deep.predict_anomaly(X_test, threshold=50.0)
+    np.save("./src/evaluation/results/ae_deep_health_scores.npy", ae_health)
+    np.save("./src/evaluation/results/ae_deep_predictions.npy", ae_preds)
+    print(f"  💾 Health Scores del Deep Autoencoder guardados")
+
+    # --- MODELO 1B: LSTM Autoencoder (Health Score) ---
+    print("\n--- MODELO 1B: LSTM Autoencoder (Health Score) ---")
+    autoencoder_lstm = MaintenanceLSTMAutoencoder(encoding_dim=16, epochs=100, batch_size=128)
+
+    ae_lstm_info = autoencoder_lstm.fit(X_train_normal)
+
+    ae_lstm_preds, ae_lstm_health = autoencoder_lstm.predict_anomaly(X_test, threshold=50.0)
+    np.save("./src/evaluation/results/ae_lstm_health_scores.npy", ae_lstm_health)
+    np.save("./src/evaluation/results/ae_lstm_predictions.npy", ae_lstm_preds)
+    print(f"  💾 Health Scores del LSTM Autoencoder guardados")
 
     # --- MODELO 2: XGBoost Multi-Class ---
     print("\n--- MODELO 2: XGBoost Multi-Class ---")

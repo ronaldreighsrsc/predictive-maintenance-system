@@ -7,9 +7,9 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-class MaintenanceAutoencoder:
+class MaintenanceDeepAutoencoder:
     """
-    Deep Autoencoder para Health Scoring de maquinaria industrial.
+    Deep Denoising Autoencoder para Health Scoring de maquinaria industrial.
 
     Arquitectura: Input → 64 → 32 → 16 (espacio latente) → 32 → 64 → Input
     Entrenado EXCLUSIVAMENTE con datos de operación NORMAL.
@@ -42,7 +42,8 @@ class MaintenanceAutoencoder:
 
         # Encoder
         inputs = keras.Input(shape=(input_dim,))
-        x = keras.layers.Dense(64, activation='relu')(inputs)
+        x = keras.layers.GaussianNoise(0.1)(inputs)
+        x = keras.layers.Dense(64, activation='relu')(x)
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.Dropout(0.2)(x)
         x = keras.layers.Dense(32, activation='relu')(x)
@@ -57,8 +58,8 @@ class MaintenanceAutoencoder:
         x = keras.layers.BatchNormalization()(x)
         decoded = keras.layers.Dense(input_dim, activation='linear')(x)
 
-        autoencoder = keras.Model(inputs, decoded, name='maintenance_autoencoder')
-        encoder = keras.Model(inputs, encoded, name='encoder')
+        autoencoder = keras.Model(inputs, decoded, name='maintenance_deep_autoencoder')
+        encoder = keras.Model(inputs, encoded, name='deep_encoder')
 
         autoencoder.compile(
             optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate),
@@ -71,7 +72,7 @@ class MaintenanceAutoencoder:
         Entrena el Autoencoder con datos de operación NORMAL.
         Calcula los parámetros de normalización para el Health Score.
         """
-        print("  🧠 Entrenando Deep Autoencoder (solo operación normal)...")
+        print("  🧠 Entrenando Deep Denoising Autoencoder (solo operación normal)...")
 
         X_scaled = self.scaler.fit_transform(X_train_normal)
         self.model, self.encoder = self._build_model(X_scaled.shape[1])

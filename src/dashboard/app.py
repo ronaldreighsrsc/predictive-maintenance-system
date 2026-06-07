@@ -29,8 +29,10 @@ def load_data():
         data['y_test'] = np.load(os.path.join(results_dir, "y_test.npy"))
         data['test_equipment'] = np.load(os.path.join(results_dir, "test_equipment_ids.npy"))
         data['test_rul'] = np.load(os.path.join(results_dir, "test_rul.npy"))
-        data['ae_health'] = np.load(os.path.join(results_dir, "ae_health_scores.npy"))
-        data['ae_preds'] = np.load(os.path.join(results_dir, "ae_predictions.npy"))
+        data['ae_deep_health'] = np.load(os.path.join(results_dir, "ae_deep_health_scores.npy"))
+        data['ae_deep_preds'] = np.load(os.path.join(results_dir, "ae_deep_predictions.npy"))
+        data['ae_lstm_health'] = np.load(os.path.join(results_dir, "ae_lstm_health_scores.npy"))
+        data['ae_lstm_preds'] = np.load(os.path.join(results_dir, "ae_lstm_predictions.npy"))
         data['xgb_preds'] = np.load(os.path.join(results_dir, "xgb_predictions.npy"))
         data['xgb_probs'] = np.load(os.path.join(results_dir, "xgb_probs.npy"))
         data['iso_preds'] = np.load(os.path.join(results_dir, "iso_predictions.npy"))
@@ -147,14 +149,19 @@ def page_fleet_overview(data: dict):
 
 
 def page_health_monitoring(data: dict):
-    """Página 2: Monitoreo de Salud (Health Score del Autoencoder)."""
-    st.header("💚 Monitoreo de Salud de Equipos")
+    """PAgina 2: Monitoreo de Salud (Health Score del Autoencoder)."""
+    st.header("🩺 Monitoreo de Salud de Equipos")
 
-    if 'ae_health' not in data:
+    if 'ae_lstm_health' not in data:
         st.warning("⚠️ Health Scores no disponibles. Ejecuta `main_training.py`.")
         return
 
-    health_scores = data['ae_health']
+    ae_model_choice = st.radio("Modelo Autoencoder para RUL:", ["LSTM Autoencoder", "Deep Denoising Autoencoder"], horizontal=True)
+    if ae_model_choice == "LSTM Autoencoder":
+        health_scores = data['ae_lstm_health']
+    else:
+        health_scores = data['ae_deep_health']
+
     equipment_ids = data['test_equipment']
     rul = data['test_rul']
 

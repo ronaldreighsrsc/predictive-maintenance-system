@@ -97,9 +97,10 @@ streamlit run src/dashboard/app.py
 
 ## Implemented Models
 
-1. **Deep Autoencoder:** Symmetric architecture generating a Health Score (0-100) based on reconstruction error. Trained only on normal operation data. Health Score < 60 → Warning, < 30 → Critical.
-2. **XGBoost Multi-Class:** Gradient Boosting classifier for 3-state prediction (Normal/Warning/Critical) with Purged & Embargoed K-Fold CV and Macro F1 optimization.
-3. **Isolation Forest (Baseline):** Unsupervised ensemble method for anomaly detection without labels.
+1. **Deep Denoising Autoencoder:** Symmetric architecture generating a Health Score (0-100) based on reconstruction error. Trained only on normal operation data. Injects Gaussian Noise to be robust against sensor vibration. Health Score < 60 → Warning, < 30 → Critical.
+2. **LSTM Autoencoder:** Advanced Deep Learning architecture using Long Short-Term Memory cells to capture temporal relationships.
+3. **XGBoost Multi-Class:** Gradient Boosting classifier for 3-state prediction (Normal/Warning/Critical) with Purged & Embargoed K-Fold CV and Macro F1 optimization.
+4. **Isolation Forest (Baseline):** Unsupervised ensemble method for anomaly detection without labels.
 
 ---
 
