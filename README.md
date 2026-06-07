@@ -23,6 +23,7 @@ predictive-maintenance-system/
  |   |-- models/                 # Block 2: Prediction Engines
  |   |   |-- autoencoder_deep.py # Deep Denoising Autoencoder for Health Score (0-100)
  |   |   |-- autoencoder_lstm.py # LSTM Autoencoder for temporal anomaly detection
+ |   |   |-- gan_detector.py     # Generative Adversarial Network for anomaly scoring
  |   |   |-- xgb_predictor.py    # XGBoost Multi-Class (Normal/Warning/Critical)
  |   |   |-- isolation_forest.py # Baseline: Isolation Forest (unsupervised)
  |   |-- evaluation/             # Block 3: Model Tournament & Industrial Analysis
@@ -100,8 +101,9 @@ streamlit run src/dashboard/app.py
 
 1. **Deep Denoising Autoencoder:** Symmetric architecture generating a Health Score (0-100) based on reconstruction error. Trained only on normal operation data. Injects Gaussian Noise to be robust against sensor vibration. Health Score < 60 → Warning, < 30 → Critical.
 2. **LSTM Autoencoder:** Advanced Deep Learning architecture using Long Short-Term Memory cells to capture temporal relationships.
-3. **XGBoost Multi-Class:** Gradient Boosting classifier for 3-state prediction (Normal/Warning/Critical) with Purged & Embargoed K-Fold CV and Macro F1 optimization.
-4. **Isolation Forest (Baseline):** Unsupervised ensemble method for anomaly detection without labels.
+3. **GAN Anomaly Detector:** Generative Adversarial Network using the Discriminator to distinguish between real normal data and fake/anomalous samples.
+4. **XGBoost Multi-Class:** Gradient Boosting classifier for 3-state prediction (Normal/Warning/Critical) with Purged & Embargoed K-Fold CV and Macro F1 optimization.
+5. **Isolation Forest (Baseline):** Unsupervised ensemble method for anomaly detection without labels.
 
 ---
 
