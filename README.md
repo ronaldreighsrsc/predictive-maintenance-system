@@ -21,7 +21,8 @@ predictive-maintenance-system/
  |   |   |-- data_loader.py      # Data loading and validation
  |   |   |-- feature_engineer.py # Temporal feature engineering (rolling, delta, EMA, cross-sensor)
  |   |-- models/                 # Block 2: Prediction Engines
- |   |   |-- autoencoder.py      # Deep Autoencoder for Health Score (0-100)
+ |   |   |-- autoencoder_deep.py # Deep Denoising Autoencoder for Health Score (0-100)
+ |   |   |-- autoencoder_lstm.py # LSTM Autoencoder for temporal anomaly detection
  |   |   |-- xgb_predictor.py    # XGBoost Multi-Class (Normal/Warning/Critical)
  |   |   |-- isolation_forest.py # Baseline: Isolation Forest (unsupervised)
  |   |-- evaluation/             # Block 3: Model Tournament & Industrial Analysis
