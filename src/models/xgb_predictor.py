@@ -77,7 +77,6 @@ class MaintenanceXGBoostPredictor:
                     random_state=self.random_state,
                     n_jobs=-1,
                     eval_metric='mlogloss',
-                    use_label_encoder=False,
                 )
                 model.fit(X_train[train_idx], y_train[train_idx])
                 preds = model.predict(X_train[val_idx])
@@ -112,7 +111,6 @@ class MaintenanceXGBoostPredictor:
             random_state=self.random_state,
             n_jobs=-1,
             eval_metric='mlogloss',
-            use_label_encoder=False,
         )
         self.model.fit(X_scaled, y_train)
         self.feature_importances_ = self.model.feature_importances_

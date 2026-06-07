@@ -15,6 +15,7 @@ st.set_page_config(
 )
 
 
+@st.cache_data
 def load_data():
     """Carga los datos procesados y resultados del torneo."""
     data = {}

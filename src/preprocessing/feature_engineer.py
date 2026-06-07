@@ -54,7 +54,7 @@ class SensorFeatureEngineer:
         print("  ✅ Features cross-sensor creadas")
 
         # Limpiar NaN generados por rolling
-        df = df.fillna(method='bfill').fillna(method='ffill').fillna(0)
+        df = df.bfill().ffill().fillna(0)
 
         print(f"  📐 Dimensiones finales: {df.shape[0]:,} filas × {df.shape[1]} columnas")
         return df
