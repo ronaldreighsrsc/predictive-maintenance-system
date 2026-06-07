@@ -4,6 +4,7 @@ import pandas as pd
 from preprocessing.feature_engineer import SensorFeatureEngineer
 from models.autoencoder_deep import MaintenanceDeepAutoencoder
 from models.autoencoder_lstm import MaintenanceLSTMAutoencoder
+from models.gan_detector import MaintenanceGANDetector
 from models.xgb_predictor import MaintenanceXGBoostPredictor
 from models.isolation_forest import MaintenanceIsolationForest
 import warnings
@@ -82,6 +83,17 @@ def run_training_pipeline():
     np.save("./src/evaluation/results/ae_lstm_health_scores.npy", ae_lstm_health)
     np.save("./src/evaluation/results/ae_lstm_predictions.npy", ae_lstm_preds)
     print(f"  💾 Health Scores del LSTM Autoencoder guardados")
+
+    # --- MODELO 1C: GAN Anomaly Detector ---
+    print("\n--- MODELO 1C: GAN Anomaly Detector (Health Score) ---")
+    gan_detector = MaintenanceGANDetector(latent_dim=16, epochs=60, batch_size=128)
+
+    gan_info = gan_detector.fit(X_train_normal)
+
+    gan_preds, gan_health = gan_detector.predict_anomaly(X_test, threshold=50.0)
+    np.save("./src/evaluation/results/gan_health_scores.npy", gan_health)
+    np.save("./src/evaluation/results/gan_predictions.npy", gan_preds)
+    print(f"  💾 Health Scores de la GAN guardados")
 
     # --- MODELO 2: XGBoost Multi-Class ---
     print("\n--- MODELO 2: XGBoost Multi-Class ---")

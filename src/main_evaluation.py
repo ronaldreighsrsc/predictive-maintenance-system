@@ -51,6 +51,11 @@ def run_evaluation_pipeline():
     engine.evaluate_model('LSTM Autoencoder', y_test, ae_lstm_preds, is_multiclass=False)
     engine.print_model_report('LSTM Autoencoder')
 
+    # GAN Anomaly Detector (binario)
+    gan_preds = np.load(os.path.join(results_dir, "gan_predictions.npy"))
+    engine.evaluate_model('GAN Anomaly Detector', y_test, gan_preds, is_multiclass=False)
+    engine.print_model_report('GAN Anomaly Detector')
+
     # Isolation Forest (binario)
     iso_preds = np.load(os.path.join(results_dir, "iso_predictions.npy"))
     engine.evaluate_model('Isolation Forest', y_test, iso_preds, is_multiclass=False)
@@ -60,6 +65,7 @@ def run_evaluation_pipeline():
     print("\n\n--- PASO 3: Análisis de Remaining Useful Life (RUL) ---")
     ae_deep_health = np.load(os.path.join(results_dir, "ae_deep_health_scores.npy"))
     ae_lstm_health = np.load(os.path.join(results_dir, "ae_lstm_health_scores.npy"))
+    gan_health = np.load(os.path.join(results_dir, "gan_health_scores.npy"))
 
     rul_analyzer = RULAnalyzer(warning_threshold=60.0, critical_threshold=30.0)
     
@@ -68,6 +74,9 @@ def run_evaluation_pipeline():
     
     print("\n--- RUL Analysis: LSTM Autoencoder ---")
     rul_results_lstm = rul_analyzer.analyze(test_equipment, test_rul, ae_lstm_health)
+
+    print("\n--- RUL Analysis: GAN Anomaly Detector ---")
+    rul_results_gan = rul_analyzer.analyze(test_equipment, test_rul, gan_health)
 
     if rul_results_lstm['alert_analysis'] is not None:
         rul_analyzer.print_equipment_summary(rul_results_lstm['alert_analysis'])

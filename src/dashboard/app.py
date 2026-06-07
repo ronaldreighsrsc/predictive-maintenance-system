@@ -33,6 +33,8 @@ def load_data():
         data['ae_deep_preds'] = np.load(os.path.join(results_dir, "ae_deep_predictions.npy"))
         data['ae_lstm_health'] = np.load(os.path.join(results_dir, "ae_lstm_health_scores.npy"))
         data['ae_lstm_preds'] = np.load(os.path.join(results_dir, "ae_lstm_predictions.npy"))
+        data['gan_health'] = np.load(os.path.join(results_dir, "gan_health_scores.npy"))
+        data['gan_preds'] = np.load(os.path.join(results_dir, "gan_predictions.npy"))
         data['xgb_preds'] = np.load(os.path.join(results_dir, "xgb_predictions.npy"))
         data['xgb_probs'] = np.load(os.path.join(results_dir, "xgb_probs.npy"))
         data['iso_preds'] = np.load(os.path.join(results_dir, "iso_predictions.npy"))
@@ -156,9 +158,11 @@ def page_health_monitoring(data: dict):
         st.warning("⚠️ Health Scores no disponibles. Ejecuta `main_training.py`.")
         return
 
-    ae_model_choice = st.radio("Modelo Autoencoder para RUL:", ["LSTM Autoencoder", "Deep Denoising Autoencoder"], horizontal=True)
+    ae_model_choice = st.radio("Modelo de Salud para RUL:", ["LSTM Autoencoder", "Deep Denoising Autoencoder", "GAN Anomaly Detector"], horizontal=True)
     if ae_model_choice == "LSTM Autoencoder":
         health_scores = data['ae_lstm_health']
+    elif ae_model_choice == "GAN Anomaly Detector":
+        health_scores = data['gan_health']
     else:
         health_scores = data['ae_deep_health']
 
