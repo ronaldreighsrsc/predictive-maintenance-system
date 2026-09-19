@@ -6,7 +6,13 @@ from typing import Optional
 warnings.filterwarnings("ignore")
 
 
-from src.evaluation.weibull_rul_estimator import WeibullRULEstimator
+try:
+    from src.evaluation.weibull_rul_estimator import WeibullRULEstimator
+except ModuleNotFoundError:
+    try:
+        from evaluation.weibull_rul_estimator import WeibullRULEstimator
+    except ModuleNotFoundError:
+        from .weibull_rul_estimator import WeibullRULEstimator
 
 class RULAnalyzer:
     """

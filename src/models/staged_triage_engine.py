@@ -10,12 +10,20 @@ import time
 from typing import Dict, Any, List, Optional, Union
 import numpy as np
 
-from src.preprocessing.streaming_window_buffer import EquipmentSlidingBuffer
-from src.models.cost_sensitive_cbm import CostSensitiveCBMDecider, IndustrialCostMatrix
-from src.models.onnx_runtime_engine import ONNXRuntimeEngine
-from src.evaluation.weibull_rul_estimator import WeibullRULEstimator
-from src.monitoring.sensor_drift_detector import SensorDriftDetector
-from src.maintenance.work_order_rag_agent import MaintenanceWorkOrderAgent
+try:
+    from src.preprocessing.streaming_window_buffer import EquipmentSlidingBuffer
+    from src.models.cost_sensitive_cbm import CostSensitiveCBMDecider, IndustrialCostMatrix
+    from src.models.onnx_runtime_engine import ONNXRuntimeEngine
+    from src.evaluation.weibull_rul_estimator import WeibullRULEstimator
+    from src.monitoring.sensor_drift_detector import SensorDriftDetector
+    from src.maintenance.work_order_rag_agent import MaintenanceWorkOrderAgent
+except ModuleNotFoundError:
+    from preprocessing.streaming_window_buffer import EquipmentSlidingBuffer
+    from models.cost_sensitive_cbm import CostSensitiveCBMDecider, IndustrialCostMatrix
+    from models.onnx_runtime_engine import ONNXRuntimeEngine
+    from evaluation.weibull_rul_estimator import WeibullRULEstimator
+    from monitoring.sensor_drift_detector import SensorDriftDetector
+    from maintenance.work_order_rag_agent import MaintenanceWorkOrderAgent
 
 
 class StagedTriageEngine:

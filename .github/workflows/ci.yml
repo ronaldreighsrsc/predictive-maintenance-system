@@ -25,14 +25,33 @@ jobs:
           pip install -r requirements.txt
 
       - name: Smoke test - Import modules
+        env:
+          PYTHONPATH: .
+        run: |
+          python -c "from src.preprocessing.data_synthesizer import SensorDataSynthesizer; print('Synthesizer OK')"
+          python -c "from src.preprocessing.data_loader import SensorDataLoader; print('DataLoader OK')"
+          python -c "from src.preprocessing.feature_engineer import SensorFeatureEngineer; print('FeatureEngineer OK')"
+          python -c "from src.preprocessing.streaming_window_buffer import EquipmentSlidingBuffer; print('StreamingBuffer OK')"
+          python -c "from src.models.autoencoder_deep import MaintenanceDeepAutoencoder; print('Deep Autoencoder OK')"
+          python -c "from src.models.autoencoder_lstm import MaintenanceLSTMAutoencoder; print('LSTM Autoencoder OK')"
+          python -c "from src.models.xgb_predictor import MaintenanceXGBoostPredictor; print('XGBoost OK')"
+          python -c "from src.models.isolation_forest import MaintenanceIsolationForest; print('IsolationForest OK')"
+          python -c "from src.models.cost_sensitive_cbm import CostSensitiveCBMDecider; print('CostSensitiveCBM OK')"
+          python -c "from src.models.staged_triage_engine import StagedTriageEngine; print('StagedTriage OK')"
+          python -c "from src.evaluation.metrics_engine import MaintenanceMetricsEngine; print('MetricsEngine OK')"
+          python -c "from src.evaluation.weibull_rul_estimator import WeibullRULEstimator; print('WeibullRUL OK')"
+          python -c "from src.evaluation.rul_analyzer import RULAnalyzer; print('RULAnalyzer OK')"
+          python -c "from src.monitoring.sensor_drift_detector import SensorDriftDetector; print('SensorDrift OK')"
+          python -c "from src.maintenance.work_order_rag_agent import MaintenanceWorkOrderAgent; print('WorkOrderAgent OK')"
+          python -c "import fastapii; print('FastAPI App OK')"
+
+      - name: Backward compatibility smoke test (from inside src)
         run: |
           cd src
-          python -c "from preprocessing.data_synthesizer import SensorDataSynthesizer; print('✅ Synthesizer OK')"
-          python -c "from preprocessing.data_loader import SensorDataLoader; print('✅ DataLoader OK')"
-          python -c "from preprocessing.feature_engineer import SensorFeatureEngineer; print('✅ FeatureEngineer OK')"
-          python -c "from models.autoencoder_deep import MaintenanceDeepAutoencoder; print('✅ Deep Autoencoder OK')"
-          python -c "from models.autoencoder_lstm import MaintenanceLSTMAutoencoder; print('✅ LSTM Autoencoder OK')"
-          python -c "from models.xgb_predictor import MaintenanceXGBoostPredictor; print('✅ XGBoost OK')"
-          python -c "from models.isolation_forest import MaintenanceIsolationForest; print('✅ IsolationForest OK')"
-          python -c "from evaluation.metrics_engine import MaintenanceMetricsEngine; print('✅ MetricsEngine OK')"
-          python -c "from evaluation.rul_analyzer import RULAnalyzer; print('✅ RULAnalyzer OK')"
+          python -c "from preprocessing.data_synthesizer import SensorDataSynthesizer; print('Synthesizer OK')"
+          python -c "from evaluation.rul_analyzer import RULAnalyzer; print('RULAnalyzer OK')"
+          python -c "from models.staged_triage_engine import StagedTriageEngine; print('StagedTriage OK')"
+
+      - name: Run Pytest Test Suite
+        run: |
+          pytest tests/ -v

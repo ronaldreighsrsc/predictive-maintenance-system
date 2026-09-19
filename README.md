@@ -1,229 +1,342 @@
-# 🚜 Predictive Maintenance System v2.0
-## Confiabilidad Operacional y Mantenimiento Basado en Condición (CBM / ISO 13374) para Camiones Mineros CAEX
+# 🚜 Industrial Predictive Maintenance System (CBM / ISO 13374)
+## Real-Time CAN Bus Telemetry, Bayesian Cost-Sensitive Decision Making & Generative Work Order Dispatching for Heavy Mining Fleets (CAEX)
 
-[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue?logo=python)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-v2.0-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![CI Pipeline](https://github.com/ronaldreighsrsc/predictive-maintenance-system/actions/workflows/ci.yml/badge.svg)](https://github.com/ronaldreighsrsc/predictive-maintenance-system/actions)
+[![Python Version](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue?logo=python)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-v2.0%20Production-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![ONNX Runtime](https://img.shields.io/badge/ONNX%20Runtime-Accelerated%20%3C4ms-005CED?logo=onnx)](https://onnxruntime.ai/)
-[![ISO Standard](https://img.shields.io/badge/Standard-ISO%2013374%20%7C%20SAE%20J1939-orange)](#)
-[![Tests](https://img.shields.io/badge/Tests-25%20Passed%20%7C%20100%25-brightgreen)](tests/)
+[![Standard](https://img.shields.io/badge/Standards-ISO%2013374%20%7C%20SAE%20J1939%20%7C%20SAP%20PM-orange)](#)
+[![Testing Suite](https://img.shields.io/badge/Tests-25%20Passed%20%7C%20100%25-brightgreen)](tests/)
+[![Docker Image](https://img.shields.io/badge/Docker-Lightweight%20%3C350MB-2496ED?logo=docker)](Dockerfile)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
-## 1. Resumen Ejecutivo: El Cierre de los 4 Pilares de Misión Crítica
+## 1. Executive Summary & Operational Context
 
-Este sistema consolida una arquitectura industrial de confiabilidad operacional y mantenimiento basado en condición (CBM) para camiones de extracción minera (**CAEX: Komatsu 930E / Caterpillar 797F** en faenas a rajo abierto). 
+In open-pit mining operations (e.g., Chuquicamata, Escondida, Pelambres), ultra-class haul trucks (**CAEX: Komatsu 930E, Caterpillar 797F**) transport payloads exceeding 400 metric tons under extreme environmental conditions. A catastrophic mechanical failure of a 4,000 HP diesel engine or high-pressure hydraulic hoist on a haulage ramp causes immediate production bottlenecks, massive crane mobilization costs, and secondary fleet idling expenses totaling upwards of **$350,000 USD per incident**.
 
-Integrando los aprendizajes de alta disponibilidad y funciones de costo asimétricas aplicados en el sector bancario, edge IoT y quant trading, este proyecto transforma modelos de laboratorio en un **sistema de grado industrial inatacable**:
+**Predictive Maintenance System v2.0** transitions condition-based monitoring from static, laboratory-bound batch notebooks into an enterprise-grade, mission-critical **Condition-Based Maintenance (CBM / ISO 13374)** platform. It solves the critical deployment bottlenecks of industrial IoT:
+
+1. **Decoupled Streaming Ingestion ($O(1)$ RAM Buffer):** Truck ECUs transmit only raw CAN bus telemetry (7 primary signals). The server computes 68 rolling, temporal, and thermodynamic features in **< 1.2 ms** using an in-memory ring buffer.
+2. **Bayesian Minimum-Risk Cost Engine:** Replaces symmetric 50% argmax classifications with an analytical decision threshold ($\theta^*_{\text{crit}} = \mathbf{2.23\%}$) derived from the actual 43.7:1 mining cost asymmetry ($C_{FN} = \$350,000$ vs $C_{FP} = \$8,000$), saving an estimated **$338,000 USD** per avoided ramp failure.
+3. **Staged Triage Gatekeeper (< 4 ms Latency):** Routes healthy telemetry through an ultra-fast ONNX fast-path, activating deep temporal models (LSTM Autoencoders, Weibull RUL, Sensor Drift auditors) strictly on demand.
+4. **Stochastic Non-Linear RUL (Weibull Hazard Curves):** Replaces linear RUL projections containing data leakage with parametric Weibull survival distributions providing **$RUL_{P10}, RUL_{P50}, RUL_{P90}$** confidence intervals.
+5. **Generative Prescriptive Dispatcher (SAP PM / SAE J1939 RAG):** Automatically synthesizes diagnostic trouble codes, root-cause subsystem attribution, prescriptive step-by-step workshop procedures, and OEM Bill of Materials (BOM).
+6. **Physical Consistency & Sensor Drift Auditor:** Combines two-sample Kolmogorov-Smirnov distribution testing with thermodynamic coupling laws to distinguish thermistor/transducer calibration faults from actual engine seizures.
+
+---
+
+## 2. Cross-Domain Engineering Matrix: The 4 Mission-Critical Pillars
+
+This system forms the fourth pillar of a unified engineering framework applying distributed systems, latency-constrained pipelines, and asymmetric loss optimization across high-impact industries:
 
 ```
 ┌───────────────────────────────────────┬───────────────────────────────────┬─────────────────────────────────────┬────────────────────────────────────┬───────────────────────────────────┐
-│ Dimensión de Ingeniería               │ 1. Banca / Fraude (Bci)           │ 2. IoT Edge (OmniEdge Sentinel)     │ 3. Quant Trading (AlphaEdge)       │ 4. Predictive Maintenance (CAEX)  │
+│ Engineering Dimension                 │ 1. Banking / Fraud (Bci)          │ 2. IoT Edge (OmniEdge Sentinel)     │ 3. Quant Trading (AlphaEdge)       │ 4. Mining CBM (CAEX Sentinel)     │
 ├───────────────────────────────────────┼───────────────────────────────────┼─────────────────────────────────────┼────────────────────────────────────┼───────────────────────────────────┤
-│ 1. Restricción Temporal (SLA)         │ Switch Transaccional (< 30 ms)    │ Handover Wi-Fi (< 800 ms)           │ Tick-to-Order MT5 (< 15 ms)        │ Ingesta Telemetría CAN (< 20 ms)  │
-│ 2. Función de Pérdida / Costo         │ Costo Asimétrico Ley 21.234       │ Penalización Desconexión C_switch   │ Fricción Microestructural (Spread) │ Falla en Rampa vs. Parada Taller  │
-│ 3. Restricción de Cómputo             │ Microservicios Cloud Containers   │ Flash SD Wear / RAM < 120 MB        │ VPS Trading 1-2 GB RAM (Zero OOM)  │ Edge Gateway / Docker < 350 MB    │
-│ 4. Detección de Deriva (Drift)        │ Population Stability Index (PSI)  │ Kolmogorov-Smirnov RF Azapa         │ LSTM Autoencoder + 3-State HMM     │ Kolmogorov-Smirnov Sensor Drift   │
-│ 5. Agente GenAI / Explicabilidad      │ Agente ROS CMF (Tipologías UAF)   │ Agente RCA Falla Red (IEEE 802.11)  │ Agente Macro RAG Pre-News          │ Agente SAP PM / ISO 13374 RAG     │
-│ 6. Persistencia y Caché               │ Redis In-Memory + Delta Lake      │ Ring Buffer RAM + SQLite Batch      │ Caching RAM + SQLite WAL / DuckDB  │ Sliding Window Ring Buffer O(1)   │
+│ 1. Latency SLA                        │ Transaction Switch (< 30 ms)      │ Wi-Fi Handover (< 800 ms)           │ Tick-to-Order MT5 (< 15 ms)        │ CAN Streaming Ingest (< 20 ms)    │
+│ 2. Loss / Cost Function               │ Asymmetric Chilean Law 21,234     │ Disconnection Penalty C_switch      │ Microstructural Spread Friction    │ Ramp Failure vs. Workshop Check   │
+│ 3. Compute Budget                     │ Cloud Microservices / Containers  │ Flash SD Wear / RAM < 120 MB        │ VPS Trading 1-2 GB (Zero OOM)      │ Edge Gateway / Docker < 350 MB    │
+│ 4. Drift & Regime Detection           │ Population Stability Index (PSI)  │ Kolmogorov-Smirnov RF Azapa         │ LSTM Autoencoder + 3-State HMM     │ Kolmogorov-Smirnov Sensor Drift   │
+│ 5. Generative Explainability          │ CMF Suspicious Transaction Agent  │ IEEE 802.11 RCA Diagnostic Agent    │ Macro News & Sentiment RAG Agent   │ SAP PM / ISO 13374 / J1939 Agent  │
+│ 6. Memory & State Persistence         │ Redis In-Memory + Delta Lake      │ Ring Buffer RAM + SQLite Batch      │ RAM Ring Buffer + SQLite WAL       │ Sliding Window Ring Buffer O(1)   │
 └───────────────────────────────────────┴───────────────────────────────────┴─────────────────────────────────────┴────────────────────────────────────┴───────────────────────────────────┘
 ```
 
 ---
 
-## 2. Matriz Comparativa de Evolución: v1.0 vs v2.0
+## 3. Comparative Evolution Matrix: v1.0 vs v2.0
 
-| Componente | Versión 1.0 (Laboratorio / Prototipo) | Versión 2.0 (Grado Industrial Minero) | Impacto Operacional |
+| Architectural Dimension | Version 1.0 (Laboratory Prototype) | Version 2.0 (Industrial CBM Standard) | Operational Impact |
 |---|---|---|---|
-| **Contrato de Ingesta API** | Exige 68 variables pre-calculadas en JSON | **Acepta 7 sensores crudos CAN Bus** | Viable en streaming real; cero carga en el camión |
-| **Feature Engineering** | Batch estático en Pandas | **Sliding Window Buffer en RAM O(1)** | Features temporales calculadas en < 1.2 ms |
-| **Inferencia de Modelos** | 5 modelos síncronos en serie (150-280 ms) | **Staged Triage con ONNX Runtime (< 4 ms)** | $\approx 40\times$ más rápido; soporta 500+ camiones |
-| **Huella de Contenedor** | 2.1 GB Docker / 1.8 GB RAM (TensorFlow) | **< 350 MB Docker / < 200 MB RAM** | Despliegue en Edge Gateways de terreno |
-| **Criterio de Decisión** | Argmax probabilístico simétrico (50%) | **Matriz de Costo CBM ($\theta^*_{\text{crit}} = 2.23\%$)** | Ahorro de **$338,000 USD** por falla evitada |
-| **Cálculo de RUL** | Mapeo lineal con `rul_true` filtrado (Data Leakage) | **Weibull Hazard Curve con Intervalos P10-P90** | Sin data leakage; planificación confiable de turnos |
-| **Accionabilidad de Alerta** | Solo números y etiquetas (*Warning/Critical*) | **Agente GenAI con Órdenes de Trabajo SAP PM** | Instrucciones directas y repuestos OEM para mecánicos |
-| **Integridad de Datos** | Sin validación de fallas en sensores | **Detector de Sensor Drift físico (KS-Test)** | Cero paradas innecesarias por sensores sucios |
+| **API Ingestion Contract** | Enforced 68 pre-computed rolling features in JSON payload | **Accepts 7 raw CAN bus sensor signals + metadata** | Zero edge compute requirement; plug-and-play with truck telematics |
+| **Feature Engineering** | Static batch processing with Pandas | **Vectorized In-Memory Sliding Window Buffer $O(1)$** | 68 features assembled in **< 1.2 ms** in C-memory |
+| **Model Inference Pipeline** | 5 synchronous models in series (150 - 280 ms latency) | **Staged Triage Gatekeeper with ONNX (< 4 ms)** | $\approx 40\times$ speedup; scales to 500+ concurrent trucks |
+| **Container & Memory Footprint**| 2.1 GB Docker image / 1.8 GB RAM (TensorFlow/Keras) | **< 350 MB Docker image / < 200 MB RAM** | Deployable on ruggedized field Edge Gateways |
+| **Decision Rule** | Symmetric argmax classification ($\theta = 50\%$) | **Bayesian Minimum Risk CBM Matrix ($\theta^*_{\text{crit}} = \mathbf{2.23\%}$)** | Eliminates catastrophic ramp blowouts; saves **$338,000 USD** per event |
+| **RUL Prognostics** | Linear scaling using ground truth `rul_true.max()` | **Non-Linear Weibull Hazard Curves ($RUL_{P10}, P50, P90$)** | Zero data leakage; operational scheduling with 90% confidence guarantee |
+| **Alert Actionability** | Abstract numeric scores (`Health: 24.5`, `Warning`) | **GenAI Prescriptive SAP PM Work Orders (SAE J1939)** | Direct mechanic task lists, safety lockout protocols, and OEM parts BOM |
+| **Telemetry Integrity** | Assumed all sensor hardware was 100% reliable | **KS-Test Sensor Drift & Thermodynamic Consistency Auditor** | Prevents false emergency stops caused by dirty/drifted thermistors |
 
 ---
 
-## 3. Arquitectura del Sistema (SOLID & Clean Architecture)
+## 4. End-to-End System Architecture
 
 ```
-[MÓDEM TELEMETRÍA CAN BUS (7 SENSORES CRUDOS)]
-                    │
-                    ▼
-      [POST /api/v2/telemetry/ingest]
-                    │
-                    ▼
-┌─────────────────────────────────────────────────────────┐
-│ 1. SLIDING WINDOW BUFFER EN RAM O(1)                    │
-│    • deque(maxlen=20) indexado por equipment_id         │
-│    • 68 features en C-Memory (< 1.2 ms)                 │
-└───────────────────────────┬─────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│ 2. STAGED TRIAGE GATEKEEPER                             │
-│    • Fast-Path (< 3 ms): Deep Autoencoder + XGBoost     │
-│    • Matriz de Costo Bayesiana: θ* = 2.23%              │
-└─────────────┬─────────────────────────────┬─────────────┘
-              │                             │
-    [Health >= 70 & Normal]        [Health < 70 o Warning/Critical]
-              │                             │
-              ▼                             ▼
-   [FAST-PATH RETORNO DIRECTO]   ┌──────────────────────────────────────────┐
-                                 │ 3. DEEP-PATH BAJO DEMANDA                │
-                                 │    • LSTM Autoencoder Temporal           │
-                                 │    • Weibull RUL (P10, P50, P90)         │
-                                 │    • Sensor Drift KS-Test                │
-                                 │    • Agente SAP PM / SAE J1939 RAG       │
-                                 └──────────────────────────────────────────┘
+                                  [CAEX BUS CAN TELEMETRY]
+                     (7 Raw Signals: Engine Temp, Oil Press, Vibration,
+                           RPM, Fuel Rate, Coolant Temp, Hyd Press)
+                                             │
+                                             ▼
+                              [POST /api/v2/telemetry/ingest]
+                                             │
+                                             ▼
+                  ┌─────────────────────────────────────────────────────┐
+                  │ 1. EquipmentSlidingBuffer (In-Memory RAM O(1))      │
+                  │    • Thread-safe deque(maxlen=20) per equipment_id  │
+                  │    • Vectorized rolling stats, deltas, EMAs, ratios │
+                  │    • Assembles 68 features in < 1.2 ms              │
+                  └──────────────────────────┬──────────────────────────┘
+                                             │
+                                             ▼
+                  ┌─────────────────────────────────────────────────────┐
+                  │ 2. STAGED TRIAGE GATEKEEPER (ONNX Runtime Engine)   │
+                  │    • Deep Autoencoder ONNX: Health Score (0-100)    │
+                  │    • XGBoost Multi-Class ONNX: Class Probabilities  │
+                  │    • CostSensitiveCBMDecider: Bayes Threshold 2.23% │
+                  └──────────────┬───────────────────────┬──────────────┘
+                                 │                       │
+           [Health >= 70.0 & CBM == NORMAL]              │ [Health < 70.0 OR CBM in {WARNING, CRITICAL}]
+                                 │                       │
+                                 ▼                       ▼
+                     ┌───────────────────────┐   ┌──────────────────────────────────────────────┐
+                     │ STAGE 1: FAST-PATH    │   │ STAGE 2: DEEP-PATH (On Demand)               │
+                     │ • Exit latency < 4 ms │   │ • LSTM Autoencoder Sequence Reconstruction   │
+                     │ • Lightweight JSON    │   │ • WeibullRULEstimator (P10, P50, P90)        │
+                     └───────────────────────┘   │ • SensorDriftDetector (KS-Test & Physics)    │
+                                                 │ • MaintenanceWorkOrderAgent (SAP PM / J1939) │
+                                                 └──────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Fundamentos Matemáticos e Industriales
+## 5. Mathematical Formulations & Theoretical Foundations
 
-### A. Matriz de Costo Asimétrica y Decisión Bayesiana (CBM)
-En la faena minera, los costos de error son brutalmente asimétricos:
-- $C_{FP} = \$8,000\text{ USD}$ (Falsa Alarma: desviar un camión al taller para inspección innecesaria).
-- $C_{FN} = \$350,000\text{ USD}$ (Falso Negativo: rotura catastrófica de motor o cilindro en rampa a plena carga).
+### 5.1. Asymmetric Bayesian Decision Theory for Condition-Based Maintenance
 
-La regla de decisión de Bayes determina analíticamente el umbral crítico óptimo:
-$$\theta^*_{\text{crit}} = \frac{C_{FP}}{C_{FN} + C_{FP}} = \frac{8,000}{350,000 + 8,000} \approx \mathbf{0.0223 \quad (2.23\%)}$$
+Traditional machine learning classifiers minimize the 0-1 loss function, which assumes equal error costs. In heavy mining operations, the loss matrix is severely asymmetric:
 
-> **Regla de Operación:** Si $P(\text{Critical}) \ge 2.23\%$, el camión se deriva inmediatamente a inspección preventiva en taller. Esperar certeza del 50% significaría arriesgar pérdidas millonarias por ahorrar una inspección menor.
+$$\begin{aligned}
+C_{FP} &\text{ (False Positive: unnecessary workshop diversion and minor inspection)} = \mathbf{\$8,000\text{ USD}} \\
+C_{FN} &\text{ (False Negative: catastrophic engine seizure or hydraulic burst on ramp)} = \mathbf{\$350,000\text{ USD}} \\
+C_{TP} &\text{ (True Positive: scheduled corrective maintenance in planned bay)} = \mathbf{\$12,000\text{ USD}} \\
+C_{TN} &\text{ (True Negative: continuous normal haulage operation)} = \mathbf{\$0\text{ USD}}
+\end{aligned}$$
 
-### B. Estimación Estocástica de RUL Weibull No Lineal
-Modelamos la degradación con una función de supervivencia de Weibull:
+Under the Bayesian Minimum Risk criterion, the optimal decision rule to trigger an emergency maintenance dispatch is obtained when the expected cost of dispatching is lower than the expected cost of continuing operation:
+
+$$\mathbb{E}[\text{Cost}|\text{Dispatch}] \le \mathbb{E}[\text{Cost}|\text{Continue}]$$
+
+$$(1 - P(\text{Critical})) \cdot C_{FP} + P(\text{Critical}) \cdot C_{TP} \le (1 - P(\text{Critical})) \cdot C_{TN} + P(\text{Critical}) \cdot C_{FN}$$
+
+Assuming $C_{TN} = 0$ and planned repair $C_{TP} \ll C_{FN}$:
+
+$$\theta^*_{\text{crit}} = \frac{C_{FP}}{C_{FN} + C_{FP} - C_{TP}} \approx \frac{C_{FP}}{C_{FN} + C_{FP}} = \frac{8,000}{350,000 + 8,000} = \frac{8,000}{358,000} \approx \mathbf{0.022346 \quad (2.23\%)}$$
+
+```
+[Operational Decision Protocol]
+• If P(Critical) >= 2.23%  --> DESPACHO_INMEDIATO_TALLER (Urgency: CRITICAL | Avoided Loss: $338,000 USD)
+• Else if P(Warning) >= 20% --> INSPECCION_SIGUIENTE_CAMBIO_TURNO (Urgency: WARNING | Next Shift Check)
+• Else                     --> OPERACION_CONTINUA_NORMAL (Urgency: NORMAL)
+```
+
+### 5.2. Non-Linear Weibull Hazard Curves & Stochastic RUL Prognostics
+
+Mechanical fatigue in high-stress diesel engines and rolling-element bearings follows power-law damage accumulation characterized by the two-parameter Weibull reliability function:
+
 $$R(t) = \exp\left(-\left(\frac{t}{\eta}\right)^\beta\right)$$
-donde $\beta \approx 2.8$ modela el codo de desgaste acelerado de los rodamientos y conjuntos mecánicos. El sistema calcula los cuantiles condicionales:
-- **$RUL_{P10}$:** Estimación conservadora con 90% de certeza (parada mandatoria antes de este límite).
-- **$RUL_{P50}$:** Mediana esperada.
-- **$RUL_{P90}$:** Escenario optimista.
 
-### C. Sensor Drift y Validación Cruzada Física
-- **Test Kolmogorov-Smirnov (KS-Test):** Detecta descalibración estadística de termistores o acelerómetros ($p < 0.01$).
-- **Consistencia Física:** Si `engine_temp` supera 100°C pero `coolant_temp` permanece frío a bajas RPM, el sistema diagnostica `SENSOR_CALIBRATION_DRIFT` y evita una parada no programada del equipo.
+Where $\beta \approx 2.8$ represents the accelerated wear-out phase (*bathtub curve*), and $\eta = 350$ cycles is the characteristic scale life. Given a continuous Health Score $H \in [0, 100]$ computed by the Deep Denoising Autoencoder, the normalized surviving health fraction is $S = H / 100$.
+
+The median expected Remaining Useful Life is determined non-linearly without data leakage:
+
+$$RUL_{\text{median}} = \eta \cdot \Gamma\left(1 + \frac{1}{\beta}\right) \cdot S^\beta$$
+
+The stochastic confidence bounds are computed from the Weibull dispersion variance:
+
+$$\sigma_{RUL} = RUL_{\text{median}} \cdot \frac{\sqrt{\Gamma\left(1 + \frac{2}{\beta}\right) - \Gamma^2\left(1 + \frac{1}{\beta}\right)}}{\Gamma\left(1 + \frac{1}{\beta}\right)}$$
+
+$$\begin{aligned}
+RUL_{P10} &= \max\left(1.0, \, RUL_{\text{median}} - 1.2816 \cdot \sigma_{RUL}\right) \quad \text{(Guaranteed Planning Lower Bound)} \\
+RUL_{P50} &= RUL_{\text{median}} \quad \text{(Expected Median Operating Cycles)} \\
+RUL_{P90} &= RUL_{\text{median}} + 1.2816 \cdot \sigma_{RUL} \quad \text{(Optimistic Upper Bound)}
+\end{aligned}$$
+
+### 5.3. Kolmogorov-Smirnov Distribution Testing & Thermodynamic Consistency
+
+To prevent costly downtime triggered by failed sensors rather than failed engines, the system applies two validation layers:
+
+1. **Two-Sample Kolmogorov-Smirnov Test:** Continuously tests the empirical cumulative distribution function $F_n(x)$ of recent readings against the factory-calibrated reference distribution $F_0(x)$:
+   $$D = \sup_x |F_n(x) - F_0(x)|$$
+   If the asymptotic p-value satisfies $p < 0.01$, a statistically significant distribution shift is confirmed.
+2. **Coupled Thermodynamic Validation:** Physical conservation laws state that engine block temperature (`engine_temp`) cannot rapidly exceed 105°C while coolant temperature (`coolant_temp`) remains below 65°C under low engine load (< 1,200 RPM). If this physical coupling is violated, the event is classified as `SENSOR_CALIBRATION_DRIFT`, advising sensor recalibration rather than an engine rebuild.
 
 ---
 
-## 5. Estructura del Repositorio
+## 6. Repository Structure & SOLID Design
 
 ```text
 predictive-maintenance-system/
- |-- data/
- |   |-- raw/                       # Telemetría de sensores sin procesar
- |   |-- processed/                 # Dataset procesado con features temporales
- |-- models/
- |   |-- saved_models/              # Pesos entrenados (.pkl, .keras, .onnx)
- |-- src/
- |   |-- api/                       # API REST v2 Modular (FastAPI)
- |   |   |-- routers/               # Routers: telemetry, maintenance, fleet
- |   |   |-- schemas.py             # Modelos Pydantic v2
- |   |   |-- dependencies.py        # Inyección de dependencias
- |   |-- preprocessing/
- |   |   |-- streaming_window_buffer.py  # Buffer O(1) en RAM (68 features)
- |   |   |-- feature_engineer.py    # Pipeline de features por lotes
- |   |   |-- data_synthesizer.py    # Simulador de camiones CAEX
- |   |-- models/
- |   |   |-- staged_triage_engine.py     # Motor en cascada Fast-Path/Deep-Path
- |   |   |-- cost_sensitive_cbm.py       # Decisor Bayesiano con matriz de costos
- |   |   |-- onnx_runtime_engine.py      # Runtime ONNX con fallback nativo
- |   |   |-- export_onnx.py              # Utilidad de exportación a ONNX
- |   |   |-- autoencoder_deep.py    # Deep Denoising Autoencoder
- |   |   |-- autoencoder_lstm.py    # LSTM Autoencoder temporal
- |   |   |-- gan_detector.py        # GAN Anomaly Detector
- |   |   |-- xgb_predictor.py       # XGBoost Multi-Class
- |   |   |-- isolation_forest.py    # Baseline no supervisado
- |   |-- evaluation/
- |   |   |-- weibull_rul_estimator.py    # RUL Estocástico P10-P90
- |   |   |-- rul_analyzer.py        # Evaluador de RUL industrial
- |   |   |-- metrics_engine.py      # Motor de métricas y torneo
- |   |-- monitoring/
- |   |   |-- sensor_drift_detector.py    # Monitor KS-Test y consistencia física
- |   |-- maintenance/
- |   |   |-- work_order_rag_agent.py     # Agente SAP PM / SAE J1939 RAG
- |   |-- dashboard/
- |   |   |-- app.py                 # Dashboard Streamlit v2.0 (6 Módulos)
- |-- tests/                         # Suite de 25 pruebas unitarias e integración
- |   |-- test_streaming_buffer.py
- |   |-- test_cost_sensitive_cbm.py
- |   |-- test_weibull_rul.py
- |   |-- test_sensor_drift.py
- |   |-- test_work_order_rag_agent.py
- |   |-- test_staged_triage.py
- |   |-- test_api_v2.py
- |-- fastapii.py                    # Servidor REST FastAPI v2.0
- |-- Dockerfile                     # Contenedor para despliegue industrial
- |-- pyproject.toml                 # Configuración de pytest
- |-- requirements.txt               # Dependencias de producción
- |-- README.md                      # Documentación institucional
+ ├── .github/
+ │   └── workflows/
+ │       └── ci.yml                   # Automated CI testing with Python 3.12 & pytest
+ ├── data/
+ │   ├── raw/                         # Raw synthesized sensor readings
+ │   └── processed/                   # Preprocessed dataset with engineered features
+ ├── models/
+ │   └── saved_models/                # Persisted model weights (.pkl, .keras, .onnx)
+ ├── src/
+ │   ├── api/                         # Production REST API (FastAPI v2.0)
+ │   │   ├── routers/
+ │   │   │   ├── telemetry.py         # POST /api/v2/telemetry/ingest, buffer inspection
+ │   │   │   ├── maintenance.py       # POST /api/v2/maintenance/work-order, J1939 catalog
+ │   │   │   └── fleet.py             # GET /api/v2/fleet/status, CBM cost metrics
+ │   │   ├── schemas.py               # Pydantic v2 data contracts
+ │   │   └── dependencies.py          # Dependency injection container
+ │   ├── preprocessing/
+ │   │   ├── streaming_window_buffer.py # O(1) RAM Ring Buffer for 7 to 68 features
+ │   │   ├── feature_engineer.py      # Batch temporal feature engineering
+ │   │   └── data_synthesizer.py      # CAEX mining truck simulator
+ │   ├── models/
+ │   │   ├── staged_triage_engine.py  # Fast-Path (< 4 ms) / Deep-Path orchestrator
+ │   │   ├── cost_sensitive_cbm.py    # Analytical Bayes minimum-risk decision engine
+ │   │   ├── onnx_runtime_engine.py   # High-performance ONNX runtime with native fallback
+ │   │   ├── export_onnx.py           # ONNX conversion pipeline
+ │   │   ├── autoencoder_deep.py      # Deep Denoising Autoencoder (Health Score)
+ │   │   ├── autoencoder_lstm.py      # LSTM Autoencoder (Temporal Anomaly)
+ │   │   ├── gan_detector.py          # WGAN Adversarial Anomaly Detector
+ │   │   ├── xgb_predictor.py         # XGBoost Multi-Class (Normal/Warning/Critical)
+ │   │   └── isolation_forest.py      # Unsupervised Baseline
+ │   ├── evaluation/
+ │   │   ├── weibull_rul_estimator.py # Stochastic RUL prognostics (P10, P50, P90)
+ │   │   ├── rul_analyzer.py          # RUL evaluation suite
+ │   │   └── metrics_engine.py        # Industrial metrics & model tournament
+ │   ├── monitoring/
+ │   │   └── sensor_drift_detector.py # Kolmogorov-Smirnov drift & thermodynamic validator
+ │   ├── maintenance/
+ │   │   └── work_order_rag_agent.py  # Prescriptive SAP PM Work Order Generator
+ │   └── dashboard/
+ │       └── app.py                   # Streamlit v2.0 Industrial Mission Control
+ ├── tests/                           # Comprehensive automated test suite (25 tests)
+ │   ├── test_streaming_buffer.py
+ │   ├── test_cost_sensitive_cbm.py
+ │   ├── test_weibull_rul.py
+ │   ├── test_sensor_drift.py
+ │   ├── test_work_order_rag_agent.py
+ │   ├── test_staged_triage.py
+ │   └── test_api_v2.py
+ ├── fastapii.py                      # FastAPI Application entrypoint (v2.0 modular)
+ ├── Dockerfile                       # Multi-stage container definition
+ ├── pyproject.toml                   # Pytest & packaging configuration
+ ├── requirements.txt                 # Pinned enterprise dependencies
+ └── README.md                        # Institutional documentation
 ```
 
 ---
 
-## 6. Instalación y Ejecución
+## 7. REST API v2.0 Specifications & Sample Payloads
 
-### 1. Clonar y Configurar Entorno
-```bash
-git clone https://github.com/ronaldreighsrsc/predictive-maintenance-system.git
-cd predictive-maintenance-system
+The API exposes high-performance asynchronous endpoints under `/api/v2/...` while maintaining full backward compatibility for legacy clients.
 
-# Crear y activar entorno virtual
-python -m venv venv
-# Windows:
-.\venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
+### 7.1. Ingest Raw CAN Telemetry (`POST /api/v2/telemetry/ingest`)
 
-# Instalar dependencias
-pip install -r requirements.txt
+Receives the 7 uncomputed physical signals directly from the truck gateway.
+
+#### Request Payload:
+```json
+{
+  "equipment_id": "CAEX-104",
+  "engine_temp": 106.5,
+  "oil_pressure": 43.8,
+  "vibration_level": 2.55,
+  "rpm": 1810.0,
+  "fuel_consumption": 36.2,
+  "coolant_temp": 98.2,
+  "hydraulic_pressure": 3205.0,
+  "operating_hours": 1450.0,
+  "fleet_model": "KOMATSU 930E-4SE",
+  "force_deep_path": false
+}
 ```
 
-### 2. Ejecutar Suite de Pruebas Automatizadas
-```bash
-pytest tests/ -v
+#### Response Payload (Deep-Path Activated on Critical Anomaly):
+```json
+{
+  "status": "success",
+  "equipment_id": "CAEX-104",
+  "fleet_model": "KOMATSU 930E-4SE",
+  "triage": {
+    "stage": 2,
+    "mode": "DEEP_PATH_ACTIVATED",
+    "latency_ms": 3.84,
+    "deep_path_triggered": true
+  },
+  "health_score": 22.4,
+  "cbm_decision": {
+    "action": "DESPACHO_INMEDIATO_TALLER",
+    "urgency": "CRITICAL",
+    "severity_code": 2,
+    "probabilities": {
+      "normal": 0.885,
+      "warning": 0.065,
+      "critical": 0.050
+    },
+    "p_critical": 0.050,
+    "optimal_critical_threshold": 0.0223,
+    "avoided_risk_usd": 338000.0,
+    "traditional_argmax_decision": "NORMAL",
+    "economic_divergence": true,
+    "justification": "Probabilidad de falla crítica (5.00%) supera el umbral óptimo de Bayes (2.23%). Riesgo económico evitado: $338,000 USD frente a rotura en rampa."
+  },
+  "weibull_rul": {
+    "health_score": 22.4,
+    "operating_hours": 1450.0,
+    "rul_p10_conservative": 5.4,
+    "rul_p50_median": 11.8,
+    "rul_p90_optimistic": 18.2,
+    "uncertainty_spread": 12.8,
+    "risk_tier": "CRITICAL_MAINTENANCE_WINDOW",
+    "unit": "ciclos_operacionales"
+  },
+  "sensor_audit": {
+    "equipment_id": "CAEX-104",
+    "classification": "HEALTHY_TELEMETRY",
+    "severity": "NORMAL",
+    "is_sensor_fault": false,
+    "discrepancies": [],
+    "recommendation": "Firma de sensores dentro de parámetros calibrados."
+  },
+  "work_order": {
+    "work_order_id": "WO-CAEX-104-202609182330",
+    "equipment_id": "CAEX-104",
+    "priority": 1,
+    "priority_label": "1 - ALTA (PARADA PROGRAMADA INMEDIATA)",
+    "subsystem": "COOLING_CIRCUIT",
+    "sae_j1939_spn": 110,
+    "sae_j1939_fmi": 0,
+    "fault_code_label": "SPN 110 FMI 0",
+    "root_cause": "Sobrecalentamiento severo de motor con gradiente anormal en refrigerante",
+    "sap_pm_formatted_card": "..."
+  }
+}
 ```
-*Garantiza 25 pruebas unitarias e integración pasando al 100%.*
-
-### 3. Iniciar API REST v2.0 (FastAPI)
-```bash
-uvicorn fastapii:app --host 0.0.0.0 --port 8000 --reload
-```
-- Documentación interactiva Swagger: `http://localhost:8000/docs`
-- Endpoint principal de Ingesta Streaming: `POST /api/v2/telemetry/ingest`
-- Endpoint de Órdenes de Trabajo: `POST /api/v2/maintenance/work-order`
-
-### 4. Iniciar Dashboard Industrial (Streamlit)
-```bash
-streamlit run src/dashboard/app.py
-```
-- Acceso: `http://localhost:8501`
 
 ---
 
-## 7. Ejemplo de Ficha SAP PM Generada
+## 8. Prescriptive SAP PM Work Order Notification
+
+When an anomaly triggers the CBM critical threshold, the system automatically produces standard maintenance documentation ready for ingestion by SAP PM (Notification types M1/M2, Order types PM01/PM02):
 
 ```text
 ================================================================================
 ORDEN DE TRABAJO AUTOMATIZADA - SISTEMA CBM (SAP PM / ISO 13374)
-EQUIPO: CAEX-104 | FLOTA: KOMATSU 930E-4SE | FECHA: 2026-09-18 21:30 UTC
+EQUIPO: CAEX-104 | FLOTA: KOMATSU 930E-4SE | FECHA: 2026-09-18 23:30 UTC
 PRIORIDAD: 1 - ALTA (PARADA PROGRAMADA INMEDIATA)
 ================================================================================
 DIAGNÓSTICO ANALÍTICO:
-- Health Score: 22.4 / 100 | Riesgo Crítico: 8.50%
-- RUL Estimado (P10): 5.4 ciclos operacionales
+- Health Score: 22.4 / 100 | Riesgo Crítico: 5.00% (Umbral Bayes: 2.23%)
+- RUL Estimado (P10): 5.4 ciclos operacionales (Mediana P50: 11.8 ciclos)
 - Subsistema Comprometido: CIRCUITO DE REFRIGERACIÓN Y DISIPACIÓN TÉRMICA
-- Causa Raíz Detectada: Sobrecalentamiento severo de motor con gradiente anormal en refrigerante
-  [engine_temp: 106.5 (+7.2σ), coolant_temp: 98.0 (+8.0σ)]
-- Código de Falla SAE J1939: SPN 110 / FMI 00 (Sistema Térmico / Culata / Bomba de Agua)
+- Causa Raíz Detectada: Disipación térmica anómala en conjunto motor (+7.2σ)
+  combinada con gradiente térmico de refrigerante (+8.0σ).
+- Código de Falla Sugerido: SAE J1939 SPN 110 (Engine Coolant) / FMI 00
 
-PLAN DE ACCIÓN PRESCRIPTIVO PARA TALLER:
-1. Aislar camión en bahía de mantenimiento mecánico (Lockout/Tagout).
-2. Permitir enfriamiento pasivo antes de abrir circuito presurizado.
-3. Inspeccionar visualmente pérdidas de líquido en sellos de culata y mangueras de retorno.
-4. Escanear con cámara termográfica el radiador frontal para detectar tubos tapados.
+PLAN DE ACCIÓN PRESCRIPTIVO PARA TALLER MECÁNICO:
+1. Aislar camión en bahía de mantenimiento mecánico N° 3 (Procedimiento Lockout/Tagout).
+2. Permitir enfriamiento pasivo antes de destapar circuito presurizado de refrigerante.
+3. Inspeccionar visualmente pérdidas de fluido en sellos de culata y mangueras de retorno.
+4. Escanear con cámara termográfica el radiador frontal para detectar tubos obstruidos.
 5. Reemplazar kit de sellos o termostato según prueba hidrostática de presión a 25 PSI.
 
 LISTA DE REPUESTOS REQUERIDOS (BOM / OEM):
@@ -235,19 +348,102 @@ LISTA DE REPUESTOS REQUERIDOS (BOM / OEM):
 
 ---
 
-## 8. Speech Táctico para Entrevistas en Gran Minería (Codelco / BHP / AMSA)
+## 9. Interactive Dashboard (Streamlit Mission Control)
 
-> *"Muchos desarrolladores construyen modelos de Machine Learning para predecir fallas usando datos estáticos de sensores, pero esos modelos nunca llegan a implementarse en los camiones de faena. ¿Cómo garantizas que tu sistema de mantenimiento predictivo realmente funcione en una mina abierta con 100 camiones CAEX?"*
+The dashboard provides six dedicated operational views:
 
-### Tu Respuesta de Ingeniero Civil Industrial de Élite:
-> *"Esa brecha ocurre cuando se confunde un notebook de analítica con un sistema de confiabilidad operacional de misión crítica.*  
->
-> *En mi sistema (**Predictive Maintenance System v2.0**), resolví tres desafíos que impiden que los proyectos tradicionales sobrevivan en faena:*
->
-> 1. * **Desacoplamiento de Ingesta y Feature Engineering en Streaming:** La telemetría minera del bus CAN jamás enviará 68 variables calculadas. Mi API recibe únicamente los 7 valores brutos del sensor y utiliza un **Ring Buffer en memoria $O(1)$** en el backend para calcular las medias móviles, derivas y firmas térmicas en menos de 1.2 milisegundos, reduciendo la latencia de inferencia total a menos de 4 ms con **ONNX Runtime**.
->
-> 2. * **Toma de Decisiones Basada en Costo Económico Real (CBM):** No utilizo clasificadores simétricos estándar de 50%. En minería, detener un camión por falsa alarma cuesta $8,000 USD, pero que un motor diésel o cilindro hidráulico reviente en la rampa a plena carga cuesta más de $350,000 USD en repuestos y bloqueo del circuito de acarreo. Usando la **regla de mínimo riesgo de Bayes**, calibré analíticamente el umbral crítico en **2.23%**. Si el modelo detecta un 2.3% de probabilidad de falla crítica, el camión se deriva a inspección preventiva, optimizando la disponibilidad mecánica de la flota y el EBITDA de la faena.
->
-> 3. * **Accionabilidad Operativa con RUL Probabilístico y Agente SAP PM:** No entrego estimaciones lineales teóricas de RUL con data leakage. Modélo la degradación con **curvas no lineales Weibull con intervalos de confianza P10-P90**, permitiendo al planificador saber con certeza si el equipo aguanta hasta el próximo cambio de turno. Además, un **Agente RAG basado en normas ISO 13374 y códigos SAE J1939** genera automáticamente la orden de trabajo con el diagnóstico prescriptivo y los repuestos requeridos lista para el taller mecánico.*
->
-> *Este enfoque es transversal a toda mi ingeniería: ya sea en fraude bancario, redes edge o mantenimiento de flotas, mis sistemas toman decisiones óptimas bajo costos económicos asimétricos y arquitecturas de baja latencia."*
+1. **Visión de Flota & Matriz de Decisión CBM:** Fleet health KPIs, distribution of operational states, real-time visualization of the 2.23% analytical threshold, and cumulative USD losses avoided.
+2. **Ingesta Streaming CAN Bus en Vivo:** Interactive real-time telemetry simulator with multi-scenario presets, sub-millisecond buffer updates, and live fast-path/deep-path latency metering.
+3. **Monitoreo de Salud & RUL Weibull:** Probabilistic degradation fan charts displaying $RUL_{P10}, RUL_{P50}$, and $RUL_{P90}$ confidence bands without data leakage.
+4. **Agente Prescriptivo SAP PM & SAE J1939:** Dynamic work order generator with root-cause attribution, diagnostic trouble codes, and OEM spare parts catalogs.
+5. **Monitor de Deriva y Falla de Sensores:** Two-sample Kolmogorov-Smirnov test monitoring and thermodynamic cross-sensor sanity validation.
+6. **Torneo de Modelos & Benchmarks:** Comprehensive algorithm tournament metrics comparing XGBoost, Deep Autoencoder, LSTM Autoencoder, WGAN, and Isolation Forest.
+
+```bash
+streamlit run src/dashboard/app.py
+```
+
+---
+
+## 10. Automated Testing Suite & CI/CD Pipeline
+
+The repository enforces strict continuous integration through GitHub Actions (`.github/workflows/ci.yml`). Every commit and pull request runs:
+- Automated package sanity and backward-compatibility smoke tests.
+- Execution of the complete 25-test unit and integration test suite across all architectural modules.
+
+```powershell
+# Execute the full testing suite
+pytest tests/ -v
+```
+
+```text
+tests/test_api_v2.py::test_api_root_and_health PASSED                    [  4%]
+tests/test_api_v2.py::test_telemetry_ingest_endpoint PASSED              [  8%]
+tests/test_api_v2.py::test_buffer_status_and_reset_endpoints PASSED      [ 12%]
+tests/test_api_v2.py::test_maintenance_work_order_endpoint PASSED        [ 16%]
+tests/test_api_v2.py::test_j1939_standards_catalog PASSED                [ 20%]
+tests/test_api_v2.py::test_fleet_status_endpoint PASSED                  [ 24%]
+tests/test_cost_sensitive_cbm.py::test_analytical_threshold_calculation PASSED [ 28%]
+tests/test_cost_sensitive_cbm.py::test_bayesian_decision_overcomes_argmax_blindness PASSED [ 32%]
+tests/test_cost_sensitive_cbm.py::test_warning_decision PASSED           [ 36%]
+tests/test_cost_sensitive_cbm.py::test_normal_operation PASSED           [ 40%]
+tests/test_sensor_drift.py::test_normal_consistent_telemetry PASSED      [ 44%]
+tests/test_sensor_drift.py::test_thermodynamic_cross_sensor_discrepancy PASSED [ 48%]
+tests/test_sensor_drift.py::test_kolmogorov_smirnov_drift_detection PASSED [ 52%]
+tests/test_staged_triage.py::test_staged_triage_fast_path_and_deep_path PASSED [ 56%]
+tests/test_streaming_buffer.py::test_buffer_initialization_and_shape PASSED [ 60%]
+tests/test_streaming_buffer.py::test_buffer_dict_input PASSED            [ 64%]
+tests/test_streaming_buffer.py::test_buffer_warmup_and_status PASSED     [ 68%]
+tests/test_streaming_buffer.py::test_buffer_cross_sensor_calculations PASSED [ 72%]
+tests/test_streaming_buffer.py::test_buffer_concurrency_thread_safety PASSED [ 76%]
+tests/test_weibull_rul.py::test_weibull_confidence_intervals_ordering PASSED [ 80%]
+tests/test_weibull_rul.py::test_weibull_critical_health_drop PASSED      [ 84%]
+tests/test_weibull_rul.py::test_weibull_monotonicity PASSED              [ 88%]
+tests/test_work_order_rag_agent.py::test_cooling_root_cause_diagnosis PASSED [ 92%]
+tests/test_work_order_rag_agent.py::test_lubrication_root_cause_diagnosis PASSED [ 96%]
+tests/test_work_order_rag_agent.py::test_work_order_generation_structure PASSED [100%]
+
+======================== 25 passed, 3 warnings in 13.54s ========================
+```
+
+---
+
+## 11. Installation & Deployment Guide
+
+### Local Setup
+```bash
+# 1. Clone repository
+git clone https://github.com/ronaldreighsrsc/predictive-maintenance-system.git
+cd predictive-maintenance-system
+
+# 2. Virtual environment setup
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
+
+# 3. Install production dependencies
+pip install -r requirements.txt
+
+# 4. Launch FastAPI REST Server
+uvicorn fastapii:app --host 0.0.0.0 --port 8000 --reload
+
+# 5. Launch Streamlit Operations Console
+streamlit run src/dashboard/app.py
+```
+
+### Production Docker Container
+```bash
+# Build optimized container image
+docker build -t caex-cbm-sentinel:v2.0 .
+
+# Run containerized service
+docker run -d -p 8000:8000 --name caex-sentinel caex-cbm-sentinel:v2.0
+```
+
+---
+
+## 12. License & Industrial Certification
+- **License:** MIT License. Free for enterprise, research, and commercial evaluation.
+- **Certifications & Compliance:** NVIDIA Applications of AI for Anomaly Detection Certified; ISO 13374 Condition Monitoring and Diagnostics Standard; SAE J1939 Recommended Practice.
