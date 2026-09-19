@@ -59,6 +59,7 @@ def run_training_pipeline():
     print(f"  📦 Test: {len(X_test):,} lecturas ({len(test_equipment)} equipos)")
 
     os.makedirs("./src/evaluation/results", exist_ok=True)
+    os.makedirs("./models/saved_models", exist_ok=True)
 
     # --- MODELO 1A: Deep Denoising Autoencoder (Health Score) ---
     print("\n--- MODELO 1A: Deep Denoising Autoencoder (Health Score) ---")
@@ -67,6 +68,7 @@ def run_training_pipeline():
     # Entrenar solo con datos normales
     X_train_normal = X_train[y_train == 0]
     ae_info = autoencoder_deep.fit(X_train_normal)
+    autoencoder_deep.save("./models/saved_models/ae_deep.pkl")
 
     ae_preds, ae_health = autoencoder_deep.predict_anomaly(X_test, threshold=50.0)
     np.save("./src/evaluation/results/ae_deep_health_scores.npy", ae_health)
@@ -78,6 +80,7 @@ def run_training_pipeline():
     autoencoder_lstm = MaintenanceLSTMAutoencoder(encoding_dim=16, epochs=100, batch_size=128)
 
     ae_lstm_info = autoencoder_lstm.fit(X_train_normal)
+    autoencoder_lstm.save("./models/saved_models/ae_lstm.pkl")
 
     ae_lstm_preds, ae_lstm_health = autoencoder_lstm.predict_anomaly(X_test, threshold=50.0)
     np.save("./src/evaluation/results/ae_lstm_health_scores.npy", ae_lstm_health)
@@ -89,6 +92,7 @@ def run_training_pipeline():
     gan_detector = MaintenanceGANDetector(latent_dim=16, epochs=60, batch_size=128)
 
     gan_info = gan_detector.fit(X_train_normal)
+    gan_detector.save("./models/saved_models/gan.pkl")
 
     gan_preds, gan_health = gan_detector.predict_anomaly(X_test, threshold=50.0)
     np.save("./src/evaluation/results/gan_health_scores.npy", gan_health)
@@ -101,6 +105,7 @@ def run_training_pipeline():
 
     best_params = xgb_predictor.find_best_params(X_train, y_train)
     xgb_predictor.train(X_train, y_train, best_params)
+    xgb_predictor.save("./models/saved_models/xgb.pkl")
 
     xgb_preds, xgb_probs = xgb_predictor.predict(X_test)
     np.save("./src/evaluation/results/xgb_predictions.npy", xgb_preds)
@@ -114,6 +119,7 @@ def run_training_pipeline():
     print("\n--- MODELO 3: Isolation Forest (Baseline) ---")
     iso_forest = MaintenanceIsolationForest(contamination=0.10, n_estimators=200)
     iso_forest.fit(X_train)
+    iso_forest.save("./models/saved_models/iso.pkl")
 
     iso_preds, iso_scores = iso_forest.predict(X_test)
     np.save("./src/evaluation/results/iso_predictions.npy", iso_preds)

@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 import warnings
+import joblib
 
 warnings.filterwarnings("ignore")
 
@@ -52,3 +53,31 @@ class MaintenanceIsolationForest:
         predictions = np.where(raw_predictions == -1, 1, 0)
         anomaly_scores = -self.model.decision_function(X_scaled)
         return predictions, anomaly_scores
+
+    def save(self, filepath: str) -> None:
+        """Guarda el modelo y scaler en disco."""
+        if self.model is None:
+            raise ValueError("No hay modelo entrenado para guardar.")
+        
+        state = {
+            'model': self.model,
+            'scaler': self.scaler,
+            'contamination': self.contamination,
+            'n_estimators': self.n_estimators
+        }
+        joblib.dump(state, filepath)
+        print(f"  💾 Modelo Isolation Forest guardado en {filepath}")
+
+    @classmethod
+    def load(cls, filepath: str):
+        """Carga un modelo guardado previamente."""
+        state = joblib.load(filepath)
+        
+        instance = cls(
+            contamination=state['contamination'],
+            n_estimators=state['n_estimators']
+        )
+        instance.model = state['model']
+        instance.scaler = state['scaler']
+        
+        return instance

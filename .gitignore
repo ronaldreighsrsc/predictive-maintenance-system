@@ -11,3 +11,8 @@ src/evaluation/results/*.csv
 
 # Archivos ocultos del sistema
 .DS_Store
+
+# Saved models (heavy binary files)
+models/saved_models/
+*.pkl
+*.keras

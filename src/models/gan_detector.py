@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 from sklearn.preprocessing import StandardScaler
 import warnings
+import joblib
 
 warnings.filterwarnings("ignore")
 
@@ -185,3 +186,39 @@ class MaintenanceGANDetector:
         health_scores = self.predict_health_score(X)
         predictions = (health_scores < threshold).astype(int)
         return predictions, health_scores
+
+    def save(self, filepath: str) -> None:
+        """Guarda los modelos (G y D), scaler y parámetros en disco."""
+        if self.generator is None or self.discriminator is None:
+            raise ValueError("No hay modelo entrenado para guardar.")
+        
+        g_path = filepath.replace(".pkl", "_g.keras")
+        d_path = filepath.replace(".pkl", "_d.keras")
+        self.generator.save(g_path)
+        self.discriminator.save(d_path)
+        
+        state = {
+            'scaler': self.scaler,
+            '_base_score': self._base_score,
+            '_max_deviation': self._max_deviation,
+            'latent_dim': self.latent_dim
+        }
+        joblib.dump(state, filepath)
+        print(f"  💾 GAN guardada en {filepath}, {g_path} y {d_path}")
+
+    @classmethod
+    def load(cls, filepath: str):
+        """Carga un modelo guardado previamente."""
+        state = joblib.load(filepath)
+        g_path = filepath.replace(".pkl", "_g.keras")
+        d_path = filepath.replace(".pkl", "_d.keras")
+        
+        instance = cls(latent_dim=state['latent_dim'])
+        instance.scaler = state['scaler']
+        instance._base_score = state['_base_score']
+        instance._max_deviation = state['_max_deviation']
+        
+        instance.generator = keras.models.load_model(g_path)
+        instance.discriminator = keras.models.load_model(d_path)
+        
+        return instance

@@ -1,35 +1,43 @@
 import numpy as np
 import pandas as pd
 import warnings
+from typing import Optional
 
 warnings.filterwarnings("ignore")
 
 
+from src.evaluation.weibull_rul_estimator import WeibullRULEstimator
+
 class RULAnalyzer:
     """
     Analizador de Remaining Useful Life (RUL) para mantenimiento predictivo.
-    Compara el RUL predicho (basado en Health Score del Autoencoder)
-    con el RUL real, y calcula métricas de performance industrial.
+    Compara el RUL predicho (basado en curvas no lineales de Weibull o Health Score)
+    con el RUL real, y calcula métricas de performance industrial sin fuga de datos.
 
     Métricas calculadas:
-        - MAE del RUL (Mean Absolute Error)
-        - RMSE del RUL
+        - MAE y RMSE del RUL
+        - Intervalos de confianza estocásticos (P10, P50, P90)
         - Lead Time de alerta (ciclos de anticipación antes de la falla)
-        - Early/Late prediction rate
+        - Tasa de detección temprana vs tardía
     """
 
     def __init__(self, warning_threshold: float = 60.0,
-                 critical_threshold: float = 30.0):
+                 critical_threshold: float = 30.0,
+                 method: str = "weibull"):
         """
         Args:
             warning_threshold: Health Score bajo el cual se emite alerta Warning.
             critical_threshold: Health Score bajo el cual se emite alerta Critical.
+            method: 'weibull' (recomendado industrial v2.0) o 'linear' (v1.0 legado).
         """
         self.warning_threshold = warning_threshold
         self.critical_threshold = critical_threshold
+        self.method = method
+        self.weibull_estimator = WeibullRULEstimator()
 
     def analyze(self, equipment_ids: np.ndarray, rul_true: np.ndarray,
-                health_scores: np.ndarray) -> dict:
+                health_scores: np.ndarray,
+                operating_hours: Optional[np.ndarray] = None) -> dict:
         """
         Análisis completo de RUL por equipo.
         
@@ -37,8 +45,9 @@ class RULAnalyzer:
             equipment_ids: ID del equipo para cada lectura.
             rul_true: RUL real (ciclos hasta falla).
             health_scores: Health Score predicho por el Autoencoder.
+            operating_hours: Horas acumuladas de operación (opcional).
         """
-        print("  📐 Analizando Remaining Useful Life (RUL)...")
+        print(f"  📐 Analizando Remaining Useful Life (RUL) [Método: {self.method.upper()}]...")
 
         df = pd.DataFrame({
             'equipment_id': equipment_ids,
@@ -46,10 +55,22 @@ class RULAnalyzer:
             'health_score': health_scores,
         })
 
-        # RUL predicho: estimado a partir del Health Score
-        # Mapeo lineal: Health Score 100 → RUL max, Health Score 0 → RUL 0
-        max_rul = df.groupby('equipment_id')['rul_true'].transform('max')
-        df['rul_predicted'] = (df['health_score'] / 100) * max_rul
+        if self.method == "weibull":
+            # Modelo v2.0: No lineal sin data leakage
+            p10_list, p50_list, p90_list = [], [], []
+            for hs in health_scores:
+                res = self.weibull_estimator.estimate_rul(hs)
+                p10_list.append(res["rul_p10_conservative"])
+                p50_list.append(res["rul_p50_median"])
+                p90_list.append(res["rul_p90_optimistic"])
+
+            df['rul_predicted'] = p50_list
+            df['rul_p10'] = p10_list
+            df['rul_p90'] = p90_list
+        else:
+            # Mapeo lineal v1.0 legado
+            max_rul = df.groupby('equipment_id')['rul_true'].transform('max')
+            df['rul_predicted'] = (df['health_score'] / 100) * max_rul
 
         # Métricas globales
         mae = np.mean(np.abs(df['rul_true'] - df['rul_predicted']))

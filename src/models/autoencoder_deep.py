@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 from sklearn.preprocessing import StandardScaler
 import warnings
+import joblib
 
 warnings.filterwarnings("ignore")
 
@@ -140,3 +141,33 @@ class MaintenanceDeepAutoencoder:
         X_scaled = self.scaler.transform(X)
         reconstructed = self.model.predict(X_scaled, verbose=0)
         return np.mean(np.power(X_scaled - reconstructed, 2), axis=1)
+
+    def save(self, filepath: str) -> None:
+        """Guarda el modelo, scaler y parámetros en disco."""
+        if self.model is None:
+            raise ValueError("No hay modelo entrenado para guardar.")
+        
+        keras_path = filepath.replace(".pkl", ".keras")
+        self.model.save(keras_path)
+        
+        state = {
+            'scaler': self.scaler,
+            '_max_mse': self._max_mse,
+            'encoding_dim': self.encoding_dim
+        }
+        joblib.dump(state, filepath)
+        print(f"  💾 Deep Autoencoder guardado en {filepath} y {keras_path}")
+
+    @classmethod
+    def load(cls, filepath: str):
+        """Carga un modelo guardado previamente."""
+        state = joblib.load(filepath)
+        keras_path = filepath.replace(".pkl", ".keras")
+        
+        instance = cls(encoding_dim=state['encoding_dim'])
+        instance.scaler = state['scaler']
+        instance._max_mse = state['_max_mse']
+        
+        instance.model = keras.models.load_model(keras_path)
+        
+        return instance
