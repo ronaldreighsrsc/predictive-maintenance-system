@@ -445,5 +445,8 @@ docker run -d -p 8000:8000 --name caex-sentinel caex-cbm-sentinel:v2.0
 ---
 
 ## 12. License & Industrial Certification
-- **License:** MIT License. Free for enterprise, research, and commercial evaluation.
+- **Author:** Ronald Solares (Ingeniero Civil Industrial — Especialista en Data, MLOps y Sistemas Distribuidos).
+- **License:** MIT License. Free for enterprise, research, and commercial evaluation. Consulta [LICENSE](LICENSE) para más detalles.
 - **Certifications & Compliance:** NVIDIA Applications of AI for Anomaly Detection Certified; ISO 13374 Condition Monitoring and Diagnostics Standard; SAE J1939 Recommended Practice.
+- **Unified 4-Pillar Portfolio:** Forma parte de la suite transversal de ingeniería de misión crítica junto con [Fraud Detection System (Bci)](https://github.com/ronaldreighsrsc/fraud-detection-system), [OmniEdge Sentinel](https://github.com/ronaldreighsrsc/edge-network-resilience-system) y [AlphaEdge Quant Bot](https://github.com/ronaldreighsrsc/quant-trading-bot).
+
