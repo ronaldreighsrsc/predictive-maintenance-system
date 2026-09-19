@@ -27,26 +27,7 @@ In open-pit mining operations (e.g., Chuquicamata, Escondida, Pelambres), ultra-
 
 ---
 
-## 2. Cross-Domain Engineering Matrix: The 4 Mission-Critical Pillars
-
-This system forms the fourth pillar of a unified engineering framework applying distributed systems, latency-constrained pipelines, and asymmetric loss optimization across high-impact industries:
-
-```
-┌───────────────────────────────────────┬───────────────────────────────────┬─────────────────────────────────────┬────────────────────────────────────┬───────────────────────────────────┐
-│ Engineering Dimension                 │ 1. Banking / Fraud (Bci)          │ 2. IoT Edge (OmniEdge Sentinel)     │ 3. Quant Trading (AlphaEdge)       │ 4. Mining CBM (CAEX Sentinel)     │
-├───────────────────────────────────────┼───────────────────────────────────┼─────────────────────────────────────┼────────────────────────────────────┼───────────────────────────────────┤
-│ 1. Latency SLA                        │ Transaction Switch (< 30 ms)      │ Wi-Fi Handover (< 800 ms)           │ Tick-to-Order MT5 (< 15 ms)        │ CAN Streaming Ingest (< 20 ms)    │
-│ 2. Loss / Cost Function               │ Asymmetric Chilean Law 21,234     │ Disconnection Penalty C_switch      │ Microstructural Spread Friction    │ Ramp Failure vs. Workshop Check   │
-│ 3. Compute Budget                     │ Cloud Microservices / Containers  │ Flash SD Wear / RAM < 120 MB        │ VPS Trading 1-2 GB (Zero OOM)      │ Edge Gateway / Docker < 350 MB    │
-│ 4. Drift & Regime Detection           │ Population Stability Index (PSI)  │ Kolmogorov-Smirnov RF Azapa         │ LSTM Autoencoder + 3-State HMM     │ Kolmogorov-Smirnov Sensor Drift   │
-│ 5. Generative Explainability          │ CMF Suspicious Transaction Agent  │ IEEE 802.11 RCA Diagnostic Agent    │ Macro News & Sentiment RAG Agent   │ SAP PM / ISO 13374 / J1939 Agent  │
-│ 6. Memory & State Persistence         │ Redis In-Memory + Delta Lake      │ Ring Buffer RAM + SQLite Batch      │ RAM Ring Buffer + SQLite WAL       │ Sliding Window Ring Buffer O(1)   │
-└───────────────────────────────────────┴───────────────────────────────────┴─────────────────────────────────────┴────────────────────────────────────┴───────────────────────────────────┘
-```
-
----
-
-## 3. Comparative Evolution Matrix: v1.0 vs v2.0
+## 2. Comparative Evolution Matrix: v1.0 vs v2.0
 
 | Architectural Dimension | Version 1.0 (Laboratory Prototype) | Version 2.0 (Industrial CBM Standard) | Operational Impact |
 |---|---|---|---|
@@ -61,7 +42,7 @@ This system forms the fourth pillar of a unified engineering framework applying 
 
 ---
 
-## 4. End-to-End System Architecture
+## 3. End-to-End System Architecture
 
 ```
                                   [CAEX BUS CAN TELEMETRY]
@@ -101,9 +82,9 @@ This system forms the fourth pillar of a unified engineering framework applying 
 
 ---
 
-## 5. Mathematical Formulations & Theoretical Foundations
+## 4. Mathematical Formulations & Theoretical Foundations
 
-### 5.1. Asymmetric Bayesian Decision Theory for Condition-Based Maintenance
+### 4.1. Asymmetric Bayesian Decision Theory for Condition-Based Maintenance
 
 Traditional machine learning classifiers minimize the 0-1 loss function, which assumes equal error costs. In heavy mining operations, the loss matrix is severely asymmetric:
 
@@ -164,7 +145,7 @@ To prevent costly downtime triggered by failed sensors rather than failed engine
 
 ---
 
-## 6. Repository Structure & SOLID Design
+## 5. Repository Structure & SOLID Design
 
 ```text
 predictive-maintenance-system/
@@ -225,7 +206,7 @@ predictive-maintenance-system/
 
 ---
 
-## 7. REST API v2.0 Specifications & Sample Payloads
+## 6. REST API v2.0 Specifications & Sample Payloads
 
 The API exposes high-performance asynchronous endpoints under `/api/v2/...` while maintaining full backward compatibility for legacy clients.
 
@@ -314,7 +295,7 @@ Receives the 7 uncomputed physical signals directly from the truck gateway.
 
 ---
 
-## 8. Prescriptive SAP PM Work Order Notification
+## 7. Prescriptive SAP PM Work Order Notification
 
 When an anomaly triggers the CBM critical threshold, the system automatically produces standard maintenance documentation ready for ingestion by SAP PM (Notification types M1/M2, Order types PM01/PM02):
 
@@ -348,7 +329,7 @@ LISTA DE REPUESTOS REQUERIDOS (BOM / OEM):
 
 ---
 
-## 9. Interactive Dashboard (Streamlit Mission Control)
+## 8. Interactive Dashboard (Streamlit Mission Control)
 
 The dashboard provides six dedicated operational views:
 
@@ -365,7 +346,7 @@ streamlit run src/dashboard/app.py
 
 ---
 
-## 10. Automated Testing Suite & CI/CD Pipeline
+## 9. Automated Testing Suite & CI/CD Pipeline
 
 The repository enforces strict continuous integration through GitHub Actions (`.github/workflows/ci.yml`). Every commit and pull request runs:
 - Automated package sanity and backward-compatibility smoke tests.
@@ -408,7 +389,7 @@ tests/test_work_order_rag_agent.py::test_work_order_generation_structure PASSED 
 
 ---
 
-## 11. Installation & Deployment Guide
+## 10. Installation & Deployment Guide
 
 ### Local Setup
 ```bash
@@ -444,9 +425,8 @@ docker run -d -p 8000:8000 --name caex-sentinel caex-cbm-sentinel:v2.0
 
 ---
 
-## 12. License & Industrial Certification
+## 11. License & Industrial Certification
 - **Author:** Ronald Solares (Ingeniero Civil Industrial — Especialista en Data, MLOps y Sistemas Distribuidos).
-- **License:** MIT License. Free for enterprise, research, and commercial evaluation. Consulta [LICENSE](LICENSE) para más detalles.
+- **License:** Distribuido bajo Licencia MIT. Consulta [LICENSE](LICENSE) para más detalles.
 - **Certifications & Compliance:** NVIDIA Applications of AI for Anomaly Detection Certified; ISO 13374 Condition Monitoring and Diagnostics Standard; SAE J1939 Recommended Practice.
-- **Unified 4-Pillar Portfolio:** Forma parte de la suite transversal de ingeniería de misión crítica junto con [Fraud Detection System (Bci)](https://github.com/ronaldreighsrsc/fraud-detection-system), [OmniEdge Sentinel](https://github.com/ronaldreighsrsc/edge-network-resilience-system) y [AlphaEdge Quant Bot](https://github.com/ronaldreighsrsc/quant-trading-bot).
 
