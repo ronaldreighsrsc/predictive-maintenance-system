@@ -6,6 +6,19 @@ from preprocessing.feature_engineer import SensorFeatureEngineer
 
 warnings.filterwarnings("ignore")
 
+# Configuración del simulador. Los componentes de realismo hacen el problema más
+# difícil y creíble que el escenario "de laboratorio" (ruido blanco, sensores ideales).
+# Las métricas del escenario limpio se conservan en
+# src/evaluation/results/maintenance_tournament_clean_baseline.csv para comparación.
+SYNTH_CONFIG = {
+    'n_equipment': 50,
+    'cycles_per_equipment': 300,
+    'failure_rate': 0.30,
+    'noise_ar_coef': 0.7,          # ruido con memoria entre turnos
+    'maintenance_interval': 60,    # mantención preventiva cada ~60 ciclos (±20%)
+    'sensor_fault_rate': 0.01,     # 1% dropouts + picos espurios + tramos pegados
+}
+
 
 def run_preprocessing_pipeline():
     """
@@ -20,11 +33,7 @@ def run_preprocessing_pipeline():
     if not os.path.exists(raw_path):
         print("\n--- PASO 1: Generación de Datos Sintéticos de Sensores ---")
         os.makedirs("./data/raw", exist_ok=True)
-        synthesizer = SensorDataSynthesizer(
-            n_equipment=50,
-            cycles_per_equipment=300,
-            failure_rate=0.30,
-        )
+        synthesizer = SensorDataSynthesizer(**SYNTH_CONFIG)
         synthesizer.generate(output_path=raw_path)
     else:
         print(f"\n--- PASO 1: Datos ya existen en {raw_path} (skip generación) ---")

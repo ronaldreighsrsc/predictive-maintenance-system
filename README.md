@@ -6,7 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-v2.0%20Production-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![ONNX Runtime](https://img.shields.io/badge/ONNX%20Runtime-Accelerated%20%3C4ms-005CED?logo=onnx)](https://onnxruntime.ai/)
 [![Standard](https://img.shields.io/badge/Standards-ISO%2013374%20%7C%20SAE%20J1939%20%7C%20SAP%20PM-orange)](#)
-[![Testing Suite](https://img.shields.io/badge/Tests-25%20Passed%20%7C%20100%25-brightgreen)](tests/)
+[![Testing Suite](https://img.shields.io/badge/Tests-33%20Passed%20%7C%20100%25-brightgreen)](tests/)
 [![Docker Image](https://img.shields.io/badge/Docker-Lightweight%20%3C350MB-2496ED?logo=docker)](Dockerfile)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
@@ -112,7 +112,7 @@ $$\theta^*_{\text{crit}} = \frac{C_{FP}}{C_{FN} + C_{FP} - C_{TP}} \approx \frac
 • Else                     --> OPERACION_CONTINUA_NORMAL (Urgency: NORMAL)
 ```
 
-### 5.2. Non-Linear Weibull Hazard Curves & Stochastic RUL Prognostics
+### 4.2. Non-Linear Weibull Hazard Curves & Stochastic RUL Prognostics
 
 Mechanical fatigue in high-stress diesel engines and rolling-element bearings follows power-law damage accumulation characterized by the two-parameter Weibull reliability function:
 
@@ -134,7 +134,7 @@ RUL_{P50} &= RUL_{\text{median}} \quad \text{(Expected Median Operating Cycles)}
 RUL_{P90} &= RUL_{\text{median}} + 1.2816 \cdot \sigma_{RUL} \quad \text{(Optimistic Upper Bound)}
 \end{aligned}$$
 
-### 5.3. Kolmogorov-Smirnov Distribution Testing & Thermodynamic Consistency
+### 4.3. Kolmogorov-Smirnov Distribution Testing & Thermodynamic Consistency
 
 To prevent costly downtime triggered by failed sensors rather than failed engines, the system applies two validation layers:
 
@@ -142,6 +142,22 @@ To prevent costly downtime triggered by failed sensors rather than failed engine
    $$D = \sup_x |F_n(x) - F_0(x)|$$
    If the asymptotic p-value satisfies $p < 0.01$, a statistically significant distribution shift is confirmed.
 2. **Coupled Thermodynamic Validation:** Physical conservation laws state that engine block temperature (`engine_temp`) cannot rapidly exceed 105°C while coolant temperature (`coolant_temp`) remains below 65°C under low engine load (< 1,200 RPM). If this physical coupling is violated, the event is classified as `SENSOR_CALIBRATION_DRIFT`, advising sensor recalibration rather than an engine rebuild.
+
+### 4.4. Empirical Stress-Testing: Laboratory Baseline vs Realistic Industrial Telemetry
+
+To ensure algorithms do not simply memorize artificial data patterns, the platform includes an ablation testing harness evaluating models under two distinct data generation regimes:
+1. **Laboratory Prototype (Clean Baseline):** Independent Gaussian white noise, zero sensor faults, uninterrupted monotonic degradation.
+2. **Industrial Telemetry Standard (Realistic):** Autocorrelated noise $\text{AR}(1)$ with persistence $\phi = 0.7$, periodic preventive maintenance sawtooth resets, and sensor failure injection (1% telemetry packet dropouts, stuck values, and EMI spikes). Missing telemetry is causally imputed per truck via forward-fill ($O(1)$) with zero future leakage.
+
+| Model Architecture | Baseline (Clean) Macro F1 | Industrial (Realistic) Macro F1 | Performance Delta | Critical Recall (Realistic) | Critical Detection Rate | False Alarm Rate |
+|---|---|---|---|---|---|---|
+| **XGBoost Multi-Class (Production)** | **97.24%** | **96.30%** | **-0.94%** | **86.49%** | **100.00%** | **0.08%** |
+| Deep Denoising Autoencoder | 87.65% | 75.13% | -12.52% | 64.44% | 85.33% | 0.62% |
+| Isolation Forest (Baseline) | 87.27% | 77.57% | -9.70% | 90.67% | 94.67% | 3.76% |
+| LSTM Autoencoder | 76.53% | 54.49% | -22.04% | 41.78% | 68.89% | 1.01% |
+| GAN Anomaly Detector | 0.00% | 0.88% | +0.88% | 0.44% | 1.33% | 0.04% |
+
+> **Key Architectural Takeaway:** Unsupervised neural reconstruction networks suffer significant degradation (-12.5% to -22.0%) under correlated noise and maintenance resets because normal baseline errors drift over time. In contrast, supervised Gradient Boosting with engineered thermodynamic ratios and causal rolling features achieves near-zero degradation (-0.94%) while maintaining a **100.0% Critical Detection Rate**.
 
 ---
 
@@ -350,7 +366,7 @@ streamlit run src/dashboard/app.py
 
 The repository enforces strict continuous integration through GitHub Actions (`.github/workflows/ci.yml`). Every commit and pull request runs:
 - Automated package sanity and backward-compatibility smoke tests.
-- Execution of the complete 25-test unit and integration test suite across all architectural modules.
+- Execution of the complete 33-test unit and integration test suite across all architectural modules (including sensor drift, Bayesian decisions, Weibull RUL, and realistic physical simulation).
 
 ```powershell
 # Execute the full testing suite
@@ -358,33 +374,41 @@ pytest tests/ -v
 ```
 
 ```text
-tests/test_api_v2.py::test_api_root_and_health PASSED                    [  4%]
-tests/test_api_v2.py::test_telemetry_ingest_endpoint PASSED              [  8%]
-tests/test_api_v2.py::test_buffer_status_and_reset_endpoints PASSED      [ 12%]
-tests/test_api_v2.py::test_maintenance_work_order_endpoint PASSED        [ 16%]
-tests/test_api_v2.py::test_j1939_standards_catalog PASSED                [ 20%]
-tests/test_api_v2.py::test_fleet_status_endpoint PASSED                  [ 24%]
-tests/test_cost_sensitive_cbm.py::test_analytical_threshold_calculation PASSED [ 28%]
-tests/test_cost_sensitive_cbm.py::test_bayesian_decision_overcomes_argmax_blindness PASSED [ 32%]
-tests/test_cost_sensitive_cbm.py::test_warning_decision PASSED           [ 36%]
-tests/test_cost_sensitive_cbm.py::test_normal_operation PASSED           [ 40%]
-tests/test_sensor_drift.py::test_normal_consistent_telemetry PASSED      [ 44%]
-tests/test_sensor_drift.py::test_thermodynamic_cross_sensor_discrepancy PASSED [ 48%]
-tests/test_sensor_drift.py::test_kolmogorov_smirnov_drift_detection PASSED [ 52%]
-tests/test_staged_triage.py::test_staged_triage_fast_path_and_deep_path PASSED [ 56%]
-tests/test_streaming_buffer.py::test_buffer_initialization_and_shape PASSED [ 60%]
-tests/test_streaming_buffer.py::test_buffer_dict_input PASSED            [ 64%]
-tests/test_streaming_buffer.py::test_buffer_warmup_and_status PASSED     [ 68%]
-tests/test_streaming_buffer.py::test_buffer_cross_sensor_calculations PASSED [ 72%]
-tests/test_streaming_buffer.py::test_buffer_concurrency_thread_safety PASSED [ 76%]
-tests/test_weibull_rul.py::test_weibull_confidence_intervals_ordering PASSED [ 80%]
-tests/test_weibull_rul.py::test_weibull_critical_health_drop PASSED      [ 84%]
-tests/test_weibull_rul.py::test_weibull_monotonicity PASSED              [ 88%]
-tests/test_work_order_rag_agent.py::test_cooling_root_cause_diagnosis PASSED [ 92%]
+tests/test_api_v2.py::test_api_root_and_health PASSED                    [  3%]
+tests/test_api_v2.py::test_telemetry_ingest_endpoint PASSED              [  6%]
+tests/test_api_v2.py::test_buffer_status_and_reset_endpoints PASSED      [  9%]
+tests/test_api_v2.py::test_maintenance_work_order_endpoint PASSED        [ 12%]
+tests/test_api_v2.py::test_j1939_standards_catalog PASSED                [ 15%]
+tests/test_api_v2.py::test_fleet_status_endpoint PASSED                  [ 18%]
+tests/test_cost_sensitive_cbm.py::test_analytical_threshold_calculation PASSED [ 21%]
+tests/test_cost_sensitive_cbm.py::test_bayesian_decision_overcomes_argmax_blindness PASSED [ 24%]
+tests/test_cost_sensitive_cbm.py::test_warning_decision PASSED           [ 27%]
+tests/test_cost_sensitive_cbm.py::test_normal_operation PASSED           [ 30%]
+tests/test_data_synthesizer.py::test_defaults_preserve_original_dataset PASSED [ 33%]
+tests/test_data_synthesizer.py::test_white_noise_has_no_autocorrelation PASSED [ 36%]
+tests/test_data_synthesizer.py::test_ar1_noise_is_autocorrelated_with_same_marginal_std PASSED [ 39%]
+tests/test_data_synthesizer.py::test_maintenance_resets_wear_in_sawtooth_pattern PASSED [ 42%]
+tests/test_data_synthesizer.py::test_maintenance_does_not_touch_degradation_window PASSED [ 45%]
+tests/test_data_synthesizer.py::test_sensor_faults_inject_missing_stuck_and_spikes PASSED [ 48%]
+tests/test_data_synthesizer.py::test_sensor_faults_do_not_alter_labels_or_rul PASSED [ 51%]
+tests/test_data_synthesizer.py::test_feature_engineer_imputes_missing_causally_per_equipment PASSED [ 54%]
+tests/test_sensor_drift.py::test_normal_consistent_telemetry PASSED      [ 57%]
+tests/test_sensor_drift.py::test_thermodynamic_cross_sensor_discrepancy PASSED [ 60%]
+tests/test_sensor_drift.py::test_kolmogorov_smirnov_drift_detection PASSED [ 63%]
+tests/test_staged_triage.py::test_staged_triage_fast_path_and_deep_path PASSED [ 66%]
+tests/test_streaming_buffer.py::test_buffer_initialization_and_shape PASSED [ 69%]
+tests/test_streaming_buffer.py::test_buffer_dict_input PASSED            [ 72%]
+tests/test_streaming_buffer.py::test_buffer_warmup_and_status PASSED     [ 75%]
+tests/test_streaming_buffer.py::test_buffer_cross_sensor_calculations PASSED [ 78%]
+tests/test_streaming_buffer.py::test_buffer_concurrency_thread_safety PASSED [ 81%]
+tests/test_weibull_rul.py::test_weibull_confidence_intervals_ordering PASSED [ 84%]
+tests/test_weibull_rul.py::test_weibull_critical_health_drop PASSED      [ 87%]
+tests/test_weibull_rul.py::test_weibull_monotonicity PASSED              [ 90%]
+tests/test_work_order_rag_agent.py::test_cooling_root_cause_diagnosis PASSED [ 93%]
 tests/test_work_order_rag_agent.py::test_lubrication_root_cause_diagnosis PASSED [ 96%]
 tests/test_work_order_rag_agent.py::test_work_order_generation_structure PASSED [100%]
 
-======================== 25 passed, 3 warnings in 13.54s ========================
+============================= 33 passed in 17.47s =============================
 ```
 
 ---
