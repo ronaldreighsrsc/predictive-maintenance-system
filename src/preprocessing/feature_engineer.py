@@ -37,6 +37,9 @@ class SensorFeatureEngineer:
         df = df.copy()
         df = df.sort_values(['equipment_id', 'cycle']).reset_index(drop=True)
 
+        # Paso 0: Imputación causal de lecturas faltantes (dropouts de telemetría)
+        df = self._impute_missing_sensors(df)
+
         # Paso 1: Rolling statistics
         df = self._add_rolling_stats(df)
         print("  ✅ Rolling statistics calculadas")
@@ -57,6 +60,24 @@ class SensorFeatureEngineer:
         df = df.bfill().ffill().fillna(0)
 
         print(f"  📐 Dimensiones finales: {df.shape[0]:,} filas × {df.shape[1]} columnas")
+        return df
+
+    def _impute_missing_sensors(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Imputa lecturas faltantes por equipo, sin fuga de información futura:
+            - forward-fill: un NaN toma la última lectura válida del MISMO equipo
+              (lo mismo que haría un sistema en línea en producción).
+            - backward-fill solo para NaN iniciales del equipo (no existe pasado).
+        Nunca rellena con lecturas de otro equipo.
+        """
+        n_missing = int(df[self.sensor_cols].isnull().sum().sum())
+        if n_missing == 0:
+            return df
+
+        grouped = df.groupby('equipment_id')[self.sensor_cols]
+        df[self.sensor_cols] = grouped.ffill()
+        df[self.sensor_cols] = df.groupby('equipment_id')[self.sensor_cols].bfill()
+        print(f"  🩹 {n_missing:,} lecturas faltantes imputadas (ffill causal por equipo)")
         return df
 
     def _add_rolling_stats(self, df: pd.DataFrame) -> pd.DataFrame:
